@@ -1,5 +1,5 @@
 import type { FormStore, FormModel, JSONSchema, PipelineConfig, PathSubscriber, ModelSubscriber, FieldNode } from '../types.js';
-import { buildFormModel } from '../model/form-model.js';
+import { runPipeline, runPipelinePrepared, prepareSchema } from '../pipeline/pipeline.js';
 import { getByPath, setByPath } from '../model/path.js';
 import { computeDirtyPaths } from './differ.js';
 
@@ -8,7 +8,14 @@ export function createFormStore(
   initialData?: unknown,
   config?: PipelineConfig,
 ): FormStore {
-  let model = buildFormModel(schema, initialData, config);
+  const cacheStatic = config?.cacheStaticStages !== false;
+  const prepared = cacheStatic ? prepareSchema(schema, config) : undefined;
+
+  const rebuild = prepared
+    ? (data: unknown) => runPipelinePrepared(prepared, data, config)
+    : (data: unknown) => runPipeline(schema, data, config);
+
+  let model = rebuild(initialData);
   const modelListeners = new Set<ModelSubscriber>();
   const pathListeners = new Map<string, Set<PathSubscriber>>();
 
@@ -30,9 +37,9 @@ export function createFormStore(
     // Compute dirty paths for targeted notifications
     const dirtyPaths = computeDirtyPaths(path, model.index.size > 0 ? getDepsFromModel() : new Map());
 
-    // Re-run full pipeline (future optimization: partial re-resolution for dirty subtrees)
+    // Re-run pipeline (static stages skipped when cached)
     const prevModel = model;
-    model = buildFormModel(schema, newData, config);
+    model = rebuild(newData);
 
     // Notify path subscribers for changed nodes
     for (const [subPath, listeners] of pathListeners) {

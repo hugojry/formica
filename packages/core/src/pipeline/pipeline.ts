@@ -1,12 +1,15 @@
-import type { JSONSchema, PipelineContext, PipelineConfig, Middleware, FormModel, PipelineStage } from '../types.js';
+import type { JSONSchema, PipelineContext, PipelineConfig, Middleware, FormModel, PipelineStage, PreparedSchema } from '../types.js';
 import { PipelineStage as Stage } from '../types.js';
 import { createContext } from './context.js';
 import * as stages from './stages.js';
 
-const STAGE_ORDER: PipelineStage[] = [
+const STATIC_STAGES: PipelineStage[] = [
   Stage.NORMALIZE,
   Stage.RESOLVE_REFS,
   Stage.MERGE_ALLOF,
+];
+
+const DYNAMIC_STAGES: PipelineStage[] = [
   Stage.EVALUATE_CONDITIONALS,
   Stage.EVALUATE_DEPENDENTS,
   Stage.RESOLVE_COMBINATORS,
@@ -49,20 +52,46 @@ function composeMiddleware(
   };
 }
 
-export function runPipeline(schema: JSONSchema, data: unknown, config?: PipelineConfig): FormModel {
-  let ctx = createContext(schema, data);
-
-  for (const stage of STAGE_ORDER) {
+function runStages(ctx: PipelineContext, stageList: PipelineStage[], config?: PipelineConfig): PipelineContext {
+  for (const stage of stageList) {
     ctx.stage = stage;
     const middlewares = config?.middleware?.[stage] ?? [];
     const run = composeMiddleware(BUILT_IN[stage], middlewares);
     ctx = run(ctx);
   }
+  return ctx;
+}
 
+function toFormModel(ctx: PipelineContext): FormModel {
   return {
     root: ctx.root!,
     schema: ctx.schema,
     data: ctx.data,
     index: ctx.index,
   };
+}
+
+/** Run static pipeline stages (normalize, resolve refs, merge allOf) once for a schema. */
+export function prepareSchema(schema: JSONSchema, config?: PipelineConfig): PreparedSchema {
+  let ctx = createContext(schema, undefined);
+  ctx = runStages(ctx, STATIC_STAGES, config);
+  return {
+    schema: ctx.schema,
+    meta: ctx.meta,
+  };
+}
+
+/** Run the full pipeline (all stages) from a raw JSON Schema. */
+export function runPipeline(schema: JSONSchema, data: unknown, config?: PipelineConfig): FormModel {
+  let ctx = createContext(schema, data);
+  ctx = runStages(ctx, [...STATIC_STAGES, ...DYNAMIC_STAGES], config);
+  return toFormModel(ctx);
+}
+
+/** Run only the dynamic pipeline stages from a PreparedSchema. */
+export function runPipelinePrepared(prepared: PreparedSchema, data: unknown, config?: PipelineConfig): FormModel {
+  let ctx = createContext(prepared.schema, data);
+  ctx.meta = { ...prepared.meta };
+  ctx = runStages(ctx, DYNAMIC_STAGES, config);
+  return toFormModel(ctx);
 }

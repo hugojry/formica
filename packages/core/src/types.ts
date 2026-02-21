@@ -182,8 +182,15 @@ export type Middleware = (ctx: PipelineContext, next: () => PipelineContext) => 
 
 export interface PipelineConfig {
   middleware?: Partial<Record<PipelineStage, Middleware[]>>;
+  /** Cache the result of static pipeline stages (normalize, resolve refs, merge allOf). Defaults to true. */
+  cacheStaticStages?: boolean;
 }
 
+/** The result of running the static pipeline stages. Can be reused across data changes. */
+export interface PreparedSchema {
+  schema: JSONSchema;
+  meta: Record<string, unknown>;
+}
 // ─── Store ───
 
 export type PathSubscriber = (node: FieldNode) => void;

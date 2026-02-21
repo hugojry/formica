@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test';
-import { buildFormModel } from '../model/form-model.js';
+import { runPipeline } from '../pipeline/pipeline.js';
 import { PipelineStage } from '../types.js';
 import type { JSONSchema, Middleware, PipelineConfig } from '../types.js';
 
-describe('buildFormModel — basic schemas', () => {
+describe('runPipeline — basic schemas', () => {
   test('simple string property', () => {
     const schema: JSONSchema = {
       type: 'object',
@@ -11,7 +11,7 @@ describe('buildFormModel — basic schemas', () => {
         name: { type: 'string' },
       },
     };
-    const model = buildFormModel(schema, { name: 'Alice' });
+    const model = runPipeline(schema, { name: 'Alice' });
     expect(model.root.type).toBe('object');
     expect(model.root.children).toHaveLength(1);
     expect(model.root.children[0].path).toBe('/name');
@@ -29,7 +29,7 @@ describe('buildFormModel — basic schemas', () => {
       },
       required: ['name'],
     };
-    const model = buildFormModel(schema, { name: 'Bob', age: 30 });
+    const model = runPipeline(schema, { name: 'Bob', age: 30 });
     expect(model.root.children).toHaveLength(3);
 
     const nameNode = model.index.get('/name')!;
@@ -58,7 +58,7 @@ describe('buildFormModel — basic schemas', () => {
       },
     };
     const data = { address: { street: '123 Main', city: 'Springfield' } };
-    const model = buildFormModel(schema, data);
+    const model = runPipeline(schema, data);
 
     const streetNode = model.index.get('/address/street')!;
     expect(streetNode.value).toBe('123 Main');
@@ -76,7 +76,7 @@ describe('buildFormModel — basic schemas', () => {
       },
     };
     const data = { tags: ['a', 'b', 'c'] };
-    const model = buildFormModel(schema, data);
+    const model = runPipeline(schema, data);
 
     const tagsNode = model.index.get('/tags')!;
     expect(tagsNode.type).toBe('array');
@@ -95,7 +95,7 @@ describe('buildFormModel — basic schemas', () => {
       items: { type: 'number' },
       maxItems: 2,
     };
-    const model = buildFormModel(schema, [1, 2]);
+    const model = runPipeline(schema, [1, 2]);
     expect(model.root.arrayMeta!.canAdd).toBe(false);
   });
 
@@ -106,7 +106,7 @@ describe('buildFormModel — basic schemas', () => {
         color: { type: 'string', enum: ['red', 'green', 'blue'] },
       },
     };
-    const model = buildFormModel(schema, { color: 'red' });
+    const model = runPipeline(schema, { color: 'red' });
     const colorNode = model.index.get('/color')!;
     expect(colorNode.constraints.enum).toEqual(['red', 'green', 'blue']);
   });
@@ -119,7 +119,7 @@ describe('buildFormModel — basic schemas', () => {
         old: { type: 'string', deprecated: true },
       },
     };
-    const model = buildFormModel(schema);
+    const model = runPipeline(schema);
     expect(model.index.get('/id')!.readOnly).toBe(true);
     expect(model.index.get('/old')!.deprecated).toBe(true);
   });
@@ -131,7 +131,7 @@ describe('buildFormModel — basic schemas', () => {
       maximum: 100,
       multipleOf: 5,
     };
-    const model = buildFormModel(schema, 50);
+    const model = runPipeline(schema, 50);
     expect(model.root.constraints.minimum).toBe(0);
     expect(model.root.constraints.maximum).toBe(100);
     expect(model.root.constraints.multipleOf).toBe(5);
@@ -145,7 +145,7 @@ describe('buildFormModel — basic schemas', () => {
       pattern: '^[a-z]+$',
       format: 'email',
     };
-    const model = buildFormModel(schema, 'test');
+    const model = runPipeline(schema, 'test');
     expect(model.root.constraints.minLength).toBe(1);
     expect(model.root.constraints.maxLength).toBe(50);
     expect(model.root.constraints.pattern).toBe('^[a-z]+$');
@@ -153,7 +153,7 @@ describe('buildFormModel — basic schemas', () => {
   });
 });
 
-describe('buildFormModel — allOf', () => {
+describe('runPipeline — allOf', () => {
   test('merges allOf schemas', () => {
     const schema: JSONSchema = {
       allOf: [
@@ -161,7 +161,7 @@ describe('buildFormModel — allOf', () => {
         { properties: { b: { type: 'number' } }, required: ['b'] },
       ],
     };
-    const model = buildFormModel(schema, { a: 'hello', b: 42 });
+    const model = runPipeline(schema, { a: 'hello', b: 42 });
     expect(model.index.get('/a')!.value).toBe('hello');
     expect(model.index.get('/b')!.value).toBe(42);
     expect(model.index.get('/b')!.required).toBe(true);
@@ -179,14 +179,14 @@ describe('buildFormModel — allOf', () => {
         },
       },
     };
-    const model = buildFormModel(schema, { field: 50 });
+    const model = runPipeline(schema, { field: 50 });
     const node = model.index.get('/field')!;
     expect(node.constraints.minimum).toBe(0);
     expect(node.constraints.maximum).toBe(100);
   });
 });
 
-describe('buildFormModel — if/then/else', () => {
+describe('runPipeline — if/then/else', () => {
   test('then branch when condition matches', () => {
     const schema: JSONSchema = {
       type: 'object',
@@ -198,7 +198,7 @@ describe('buildFormModel — if/then/else', () => {
       else: { properties: { firstName: { type: 'string' } } },
     };
 
-    const model = buildFormModel(schema, { type: 'business' });
+    const model = runPipeline(schema, { type: 'business' });
     expect(model.index.has('/company')).toBe(true);
     expect(model.index.has('/firstName')).toBe(false);
   });
@@ -214,7 +214,7 @@ describe('buildFormModel — if/then/else', () => {
       else: { properties: { firstName: { type: 'string' } } },
     };
 
-    const model = buildFormModel(schema, { type: 'personal' });
+    const model = runPipeline(schema, { type: 'personal' });
     expect(model.index.has('/company')).toBe(false);
     expect(model.index.has('/firstName')).toBe(true);
   });
@@ -228,12 +228,12 @@ describe('buildFormModel — if/then/else', () => {
       if: { properties: { type: { const: 'special' } } },
       then: { properties: { extra: { type: 'string' } } },
     };
-    const model = buildFormModel(schema, {});
+    const model = runPipeline(schema, {});
     expect(model.index.has('/extra')).toBe(false);
   });
 });
 
-describe('buildFormModel — dependentSchemas/dependentRequired', () => {
+describe('runPipeline — dependentSchemas/dependentRequired', () => {
   test('dependentRequired activates when key present', () => {
     const schema: JSONSchema = {
       type: 'object',
@@ -245,7 +245,7 @@ describe('buildFormModel — dependentSchemas/dependentRequired', () => {
         email: ['emailVerified'],
       },
     };
-    const model = buildFormModel(schema, { email: 'a@b.com' });
+    const model = runPipeline(schema, { email: 'a@b.com' });
     expect(model.index.get('/emailVerified')!.required).toBe(true);
   });
 
@@ -260,7 +260,7 @@ describe('buildFormModel — dependentSchemas/dependentRequired', () => {
         email: ['emailVerified'],
       },
     };
-    const model = buildFormModel(schema, {});
+    const model = runPipeline(schema, {});
     expect(model.index.get('/emailVerified')!.required).toBe(false);
   });
 
@@ -279,13 +279,13 @@ describe('buildFormModel — dependentSchemas/dependentRequired', () => {
         },
       },
     };
-    const model = buildFormModel(schema, { creditCard: '1234' });
+    const model = runPipeline(schema, { creditCard: '1234' });
     expect(model.index.has('/billingAddress')).toBe(true);
     expect(model.index.get('/billingAddress')!.required).toBe(true);
   });
 });
 
-describe('buildFormModel — $ref', () => {
+describe('runPipeline — $ref', () => {
   test('resolves $ref to $defs', () => {
     const schema: JSONSchema = {
       $defs: {
@@ -296,14 +296,14 @@ describe('buildFormModel — $ref', () => {
         name: { $ref: '#/$defs/Name' },
       },
     };
-    const model = buildFormModel(schema, { name: 'Alice' });
+    const model = runPipeline(schema, { name: 'Alice' });
     const nameNode = model.index.get('/name')!;
     expect(nameNode.type).toBe('string');
     expect(nameNode.constraints.minLength).toBe(1);
   });
 });
 
-describe('buildFormModel — oneOf', () => {
+describe('runPipeline — oneOf', () => {
   test('selects matching branch', () => {
     const schema: JSONSchema = {
       type: 'object',
@@ -316,7 +316,7 @@ describe('buildFormModel — oneOf', () => {
         },
       },
     };
-    const model = buildFormModel(schema, { value: 'hello' });
+    const model = runPipeline(schema, { value: 'hello' });
     const valueNode = model.index.get('/value')!;
     expect(valueNode.combinator).toBeDefined();
     expect(valueNode.combinator!.type).toBe('oneOf');
@@ -331,7 +331,7 @@ describe('buildFormModel — oneOf', () => {
         { type: 'number', title: 'Number' },
       ],
     };
-    const model = buildFormModel(schema, 42);
+    const model = runPipeline(schema, 42);
     expect(model.root.combinator!.activeIndex).toBe(1);
   });
 
@@ -342,12 +342,12 @@ describe('buildFormModel — oneOf', () => {
         { type: 'number' },
       ],
     };
-    const model = buildFormModel(schema, true);
+    const model = runPipeline(schema, true);
     expect(model.root.combinator!.activeIndex).toBeNull();
   });
 });
 
-describe('buildFormModel — Draft 7 normalization', () => {
+describe('runPipeline — Draft 7 normalization', () => {
   test('Draft 7 definitions are resolved', () => {
     const schema: JSONSchema = {
       definitions: {
@@ -358,7 +358,7 @@ describe('buildFormModel — Draft 7 normalization', () => {
         age: { $ref: '#/$defs/Age' },
       },
     };
-    const model = buildFormModel(schema, { age: 25 });
+    const model = runPipeline(schema, { age: 25 });
     const ageNode = model.index.get('/age')!;
     expect(ageNode.type).toBe('integer');
     expect(ageNode.constraints.minimum).toBe(0);
@@ -375,12 +375,12 @@ describe('buildFormModel — Draft 7 normalization', () => {
         a: ['b'],
       },
     };
-    const model = buildFormModel(schema, { a: 'hello' });
+    const model = runPipeline(schema, { a: 'hello' });
     expect(model.index.get('/b')!.required).toBe(true);
   });
 });
 
-describe('buildFormModel — defaults', () => {
+describe('runPipeline — defaults', () => {
   test('seeds default values', () => {
     const schema: JSONSchema = {
       type: 'object',
@@ -389,7 +389,7 @@ describe('buildFormModel — defaults', () => {
         age: { type: 'number' },
       },
     };
-    const model = buildFormModel(schema);
+    const model = runPipeline(schema);
     expect(model.index.get('/name')!.value).toBe('unnamed');
   });
 
@@ -400,12 +400,12 @@ describe('buildFormModel — defaults', () => {
         name: { type: 'string', default: 'unnamed' },
       },
     };
-    const model = buildFormModel(schema, { name: 'Alice' });
+    const model = runPipeline(schema, { name: 'Alice' });
     expect(model.index.get('/name')!.value).toBe('Alice');
   });
 });
 
-describe('buildFormModel — index', () => {
+describe('runPipeline — index', () => {
   test('index has O(1) lookup for all paths', () => {
     const schema: JSONSchema = {
       type: 'object',
@@ -420,7 +420,7 @@ describe('buildFormModel — index', () => {
         d: { type: 'boolean' },
       },
     };
-    const model = buildFormModel(schema, { a: { b: 'x', c: 1 }, d: true });
+    const model = runPipeline(schema, { a: { b: 'x', c: 1 }, d: true });
     expect(model.index.get('')).toBe(model.root);
     expect(model.index.get('/a')).toBeDefined();
     expect(model.index.get('/a/b')!.value).toBe('x');
@@ -445,7 +445,7 @@ describe('middleware', () => {
       },
     };
 
-    buildFormModel({ type: 'string' }, 'test', config);
+    runPipeline({ type: 'string' }, 'test', config);
     expect(log).toEqual(['before', 'after']);
   });
 
@@ -465,7 +465,7 @@ describe('middleware', () => {
       },
     };
 
-    const model = buildFormModel({ type: 'string' }, 'test', config);
+    const model = runPipeline({ type: 'string' }, 'test', config);
     expect(model.root.extensions.custom).toBe(true);
   });
 
@@ -485,7 +485,7 @@ describe('middleware', () => {
       type: 'object',
       properties: { name: { type: 'string', default: 'should_not_appear' } },
     };
-    const model = buildFormModel(schema, undefined, config);
+    const model = runPipeline(schema, undefined, config);
     // Default was skipped
     expect(model.index.get('/name')!.value).toBeUndefined();
   });
@@ -499,7 +499,7 @@ describe('middleware', () => {
       middleware: { [PipelineStage.FINALIZE]: [mw1, mw2] },
     };
 
-    buildFormModel({ type: 'string' }, 'x', config);
+    runPipeline({ type: 'string' }, 'x', config);
     expect(log).toEqual(['1-before', '2-before', '2-after', '1-after']);
   });
 });

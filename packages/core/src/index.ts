@@ -11,6 +11,7 @@ export type {
   PipelineContext,
   Middleware,
   PipelineConfig,
+  PreparedSchema,
   FormStore,
   PathSubscriber,
   ModelSubscriber,
@@ -21,7 +22,6 @@ export type {
 export { PipelineStage } from './types.js';
 
 // Model
-export { buildFormModel } from './model/form-model.js';
 export { createFieldNode, updateFieldNode } from './model/field-node.js';
 export {
   parsePath,
@@ -35,7 +35,7 @@ export {
 } from './model/path.js';
 
 // Pipeline
-export { runPipeline } from './pipeline/pipeline.js';
+export { runPipeline, runPipelinePrepared, prepareSchema } from './pipeline/pipeline.js';
 
 // Schema
 export { normalizeSchemaDraft7 } from './schema/normalize.js';
