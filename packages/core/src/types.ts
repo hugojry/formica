@@ -152,6 +152,7 @@ export interface FormModel {
   schema: JSONSchema;
   data: unknown;
   index: Map<string, FieldNode>;
+  conditionalDeps: Map<string, Set<string>>;
 }
 
 // ─── Pipeline ───

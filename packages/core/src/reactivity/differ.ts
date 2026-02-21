@@ -28,13 +28,13 @@ export function computeDirtyPaths(
   return dirty;
 }
 
-/** Check if a path is dirty or has a dirty ancestor/descendant. */
+/** Check if a path is dirty or has a dirty descendant. */
 export function isPathAffected(path: string, dirtyPaths: Set<string>): boolean {
   if (dirtyPaths.has(path)) return true;
 
-  // Check if any dirty path is an ancestor or descendant
+  // Check if any dirty path is a descendant (something changed beneath this path)
   for (const dirty of dirtyPaths) {
-    if (isDescendant(dirty, path) || isDescendant(path, dirty)) return true;
+    if (isDescendant(path, dirty)) return true;
   }
 
   return false;

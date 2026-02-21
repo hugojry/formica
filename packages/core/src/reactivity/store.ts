@@ -1,7 +1,7 @@
 import type { FormStore, FormModel, JSONSchema, PipelineConfig, PathSubscriber, ModelSubscriber, FieldNode } from '../types.js';
 import { runPipeline, runPipelinePrepared, prepareSchema } from '../pipeline/pipeline.js';
 import { getByPath, setByPath } from '../model/path.js';
-import { computeDirtyPaths } from './differ.js';
+import { computeDirtyPaths, isPathAffected } from './differ.js';
 
 export function createFormStore(
   schema: JSONSchema,
@@ -35,18 +35,19 @@ export function createFormStore(
     const newData = setByPath(model.data, path, value);
 
     // Compute dirty paths for targeted notifications
-    const dirtyPaths = computeDirtyPaths(path, model.index.size > 0 ? getDepsFromModel() : new Map());
+    const dirtyPaths = computeDirtyPaths(path, model.conditionalDeps);
 
     // Re-run pipeline (static stages skipped when cached)
     const prevModel = model;
     model = rebuild(newData);
 
-    // Notify path subscribers for changed nodes
+    // Notify path subscribers only for paths affected by the change
     for (const [subPath, listeners] of pathListeners) {
+      if (!isPathAffected(subPath, dirtyPaths)) continue;
+
       const prevNode = prevModel.index.get(subPath);
       const newNode = model.index.get(subPath);
 
-      // Only notify if the node actually changed
       if (prevNode !== newNode && (prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode))) {
         for (const listener of listeners) {
           if (newNode) listener(newNode);
@@ -58,12 +59,6 @@ export function createFormStore(
     for (const listener of modelListeners) {
       listener(model);
     }
-  }
-
-  function getDepsFromModel(): Map<string, Set<string>> {
-    // The conditional deps are built during pipeline execution
-    // For now, return empty — the pipeline context tracks them internally
-    return new Map();
   }
 
   function subscribe(listener: ModelSubscriber): () => void {

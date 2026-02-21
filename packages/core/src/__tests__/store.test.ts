@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { createFormStore } from '../reactivity/store.js';
+import { runPipeline } from '../pipeline/pipeline.js';
 import type { JSONSchema } from '../types.js';
 
 describe('FormStore', () => {
@@ -101,5 +102,153 @@ describe('FormStore', () => {
     store.setData('/type', 'business');
     expect(store.getModel().index.has('/company')).toBe(true);
     expect(store.getModel().index.has('/firstName')).toBe(false);
+  });
+});
+
+describe('conditionalDeps on FormModel', () => {
+  test('populates conditional deps for if/then/else', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        type: { type: 'string' },
+      },
+      if: { properties: { type: { const: 'business' } } },
+      then: { properties: { company: { type: 'string' } } },
+    };
+    const model = runPipeline(schema, { type: 'personal' });
+    // The if condition checks /type, so /type should have a dependency entry
+    expect(model.conditionalDeps.has('/type')).toBe(true);
+    expect(model.conditionalDeps.get('/type')!.has('')).toBe(true);
+  });
+
+  test('empty conditional deps when no conditionals', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+      },
+    };
+    const model = runPipeline(schema, { name: 'Alice' });
+    expect(model.conditionalDeps.size).toBe(0);
+  });
+});
+
+describe('dirty path filtering', () => {
+  test('unrelated sibling path subscriber is not notified', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        age: { type: 'number' },
+        email: { type: 'string' },
+      },
+    };
+    const store = createFormStore(schema, { name: 'Alice', age: 30, email: 'a@b.com' });
+    const notifications: string[] = [];
+
+    store.subscribePath('/name', () => notifications.push('name'));
+    store.subscribePath('/age', () => notifications.push('age'));
+    store.subscribePath('/email', () => notifications.push('email'));
+
+    store.setData('/name', 'Bob');
+    expect(notifications).toEqual(['name']);
+  });
+
+  test('ancestor path subscriber is notified on nested change', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        address: {
+          type: 'object',
+          properties: {
+            city: { type: 'string' },
+            zip: { type: 'string' },
+          },
+        },
+      },
+    };
+    const store = createFormStore(schema, { address: { city: 'NYC', zip: '10001' } });
+    const notifications: string[] = [];
+
+    store.subscribePath('/address', () => notifications.push('address'));
+    store.subscribePath('/address/city', () => notifications.push('city'));
+    store.subscribePath('/address/zip', () => notifications.push('zip'));
+
+    store.setData('/address/city', 'LA');
+    expect(notifications).toContain('city');
+    expect(notifications).toContain('address');
+    expect(notifications).not.toContain('zip');
+  });
+
+  test('root subscriber is notified on any change', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+      },
+    };
+    const store = createFormStore(schema, { name: 'Alice' });
+    const notifications: string[] = [];
+
+    store.subscribePath('', () => notifications.push('root'));
+    store.subscribePath('/name', () => notifications.push('name'));
+
+    store.setData('/name', 'Bob');
+    expect(notifications).toContain('root');
+    expect(notifications).toContain('name');
+  });
+
+  test('conditional dependent path subscriber is notified', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        type: { type: 'string', enum: ['personal', 'business'] },
+        unrelated: { type: 'string' },
+      },
+      if: { properties: { type: { const: 'business' } } },
+      then: { properties: { company: { type: 'string' } } },
+      else: { properties: { firstName: { type: 'string' } } },
+    };
+    const store = createFormStore(schema, { type: 'personal', unrelated: 'x' });
+    const notifications: string[] = [];
+
+    store.subscribePath('/type', () => notifications.push('type'));
+    store.subscribePath('/unrelated', () => notifications.push('unrelated'));
+    // Subscribe to model-level to verify structural change happens
+    store.subscribe(() => notifications.push('model'));
+
+    store.setData('/type', 'business');
+    expect(notifications).toContain('type');
+    expect(notifications).toContain('model');
+    expect(notifications).not.toContain('unrelated');
+  });
+
+  test('deeply nested change does not notify unrelated subtree', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        a: {
+          type: 'object',
+          properties: {
+            x: { type: 'string' },
+          },
+        },
+        b: {
+          type: 'object',
+          properties: {
+            y: { type: 'string' },
+          },
+        },
+      },
+    };
+    const store = createFormStore(schema, { a: { x: 'hello' }, b: { y: 'world' } });
+    const notifications: string[] = [];
+
+    store.subscribePath('/a/x', () => notifications.push('a/x'));
+    store.subscribePath('/b', () => notifications.push('b'));
+    store.subscribePath('/b/y', () => notifications.push('b/y'));
+
+    store.setData('/a/x', 'changed');
+    expect(notifications).toEqual(['a/x']);
   });
 });

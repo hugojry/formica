@@ -68,6 +68,7 @@ function toFormModel(ctx: PipelineContext): FormModel {
     schema: ctx.schema,
     data: ctx.data,
     index: ctx.index,
+    conditionalDeps: ctx.conditionalDeps,
   };
 }
 
