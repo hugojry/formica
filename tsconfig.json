@@ -17,6 +17,7 @@
   "references": [
     { "path": "packages/core" },
     { "path": "packages/react" },
-    { "path": "packages/theme-default" }
+    { "path": "packages/theme-default" },
+    { "path": "examples/basic" }
   ]
 }

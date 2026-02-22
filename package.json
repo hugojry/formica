@@ -1,7 +1,7 @@
 {
   "name": "formica",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": ["packages/*", "examples/*"],
   "scripts": {
     "test": "bun test",
     "build": "bun run --filter '*' build",
