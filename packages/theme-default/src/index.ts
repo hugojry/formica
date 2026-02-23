@@ -14,6 +14,8 @@ export {
   arrayTester,
   UnknownRenderer,
   unknownTester,
+  CombinatorRenderer,
+  combinatorTester,
   hasType,
   hasEnum,
 } from './renderers/index.js';

@@ -62,6 +62,70 @@ export const userProfileSchema: JSONSchema = {
       title: 'Bio',
       description: 'Short biography',
     },
+    contactMethod: {
+      title: 'Preferred Contact Method',
+      oneOf: [
+        {
+          title: 'Phone',
+          type: 'object',
+          properties: {
+            method: { type: 'string', const: 'phone' },
+            phoneNumber: { type: 'string', title: 'Phone Number' },
+          },
+          required: ['method', 'phoneNumber'],
+        },
+        {
+          title: 'Mail',
+          type: 'object',
+          properties: {
+            method: { type: 'string', const: 'mail' },
+            mailingAddress: { type: 'string', title: 'Mailing Address' },
+          },
+          required: ['method', 'mailingAddress'],
+        },
+      ],
+    },
+    employmentStatus: {
+      type: 'string',
+      title: 'Employment Status',
+      enum: ['employed', 'self-employed', 'unemployed', 'student'],
+    },
   },
   required: ['firstName', 'lastName', 'email'],
+  if: {
+    properties: {
+      employmentStatus: { const: 'employed' },
+    },
+    required: ['employmentStatus'],
+  },
+  then: {
+    properties: {
+      companyName: {
+        type: 'string',
+        title: 'Company Name',
+        description: 'Shown when employment status is "employed"',
+      },
+      jobTitle: {
+        type: 'string',
+        title: 'Job Title',
+      },
+    },
+  },
+  else: {
+    if: {
+      properties: {
+        employmentStatus: { const: 'self-employed' },
+      },
+      required: ['employmentStatus'],
+    },
+    then: {
+      properties: {
+        businessName: {
+          type: 'string',
+          title: 'Business Name',
+          description: 'Shown when employment status is "self-employed"',
+        },
+      },
+    },
+  },
 };

@@ -9,7 +9,7 @@ export interface FieldDispatchProps {
 }
 
 export function FieldDispatch({ path }: FieldDispatchProps) {
-  const { node, onChange } = useField(path);
+  const { node, onChange, setCombinatorIndex } = useField(path);
   const renderers = useRenderers();
 
   if (!node || !node.active) return null;
@@ -20,5 +20,5 @@ export function FieldDispatch({ path }: FieldDispatchProps) {
   const renderChild = (childPath: string): ReactNode =>
     createElement(FieldDispatch, { key: childPath, path: childPath });
 
-  return createElement(Renderer, { node, onChange, renderChild });
+  return createElement(Renderer, { node, onChange, setCombinatorIndex, renderChild });
 }

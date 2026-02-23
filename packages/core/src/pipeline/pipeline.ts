@@ -6,7 +6,7 @@ import * as stages from './stages.js';
 const STATIC_STAGES: PipelineStage[] = [
   Stage.NORMALIZE,
   Stage.RESOLVE_REFS,
-  Stage.MERGE_ALLOF,
+  Stage.MERGE_ALL_OF,
 ];
 
 const DYNAMIC_STAGES: PipelineStage[] = [
@@ -21,7 +21,7 @@ const DYNAMIC_STAGES: PipelineStage[] = [
 const BUILT_IN: Record<PipelineStage, (ctx: PipelineContext) => PipelineContext> = {
   [Stage.NORMALIZE]: stages.normalize,
   [Stage.RESOLVE_REFS]: stages.resolveRefs,
-  [Stage.MERGE_ALLOF]: stages.mergeAllOf,
+  [Stage.MERGE_ALL_OF]: stages.mergeAllOf,
   [Stage.EVALUATE_CONDITIONALS]: stages.evaluateConditionals,
   [Stage.EVALUATE_DEPENDENTS]: stages.evaluateDependents,
   [Stage.RESOLVE_COMBINATORS]: stages.resolveCombinators,
@@ -83,16 +83,18 @@ export function prepareSchema(schema: JSONSchema, config?: PipelineConfig): Prep
 }
 
 /** Run the full pipeline (all stages) from a raw JSON Schema. */
-export function runPipeline(schema: JSONSchema, data: unknown, config?: PipelineConfig): FormModel {
+export function runPipeline(schema: JSONSchema, data: unknown, config?: PipelineConfig, meta?: Record<string, unknown>): FormModel {
   let ctx = createContext(schema, data);
+  if (meta) Object.assign(ctx.meta, meta);
   ctx = runStages(ctx, [...STATIC_STAGES, ...DYNAMIC_STAGES], config);
   return toFormModel(ctx);
 }
 
 /** Run only the dynamic pipeline stages from a PreparedSchema. */
-export function runPipelinePrepared(prepared: PreparedSchema, data: unknown, config?: PipelineConfig): FormModel {
+export function runPipelinePrepared(prepared: PreparedSchema, data: unknown, config?: PipelineConfig, meta?: Record<string, unknown>): FormModel {
   let ctx = createContext(prepared.schema, data);
   ctx.meta = { ...prepared.meta };
+  if (meta) Object.assign(ctx.meta, meta);
   ctx = runStages(ctx, DYNAMIC_STAGES, config);
   return toFormModel(ctx);
 }

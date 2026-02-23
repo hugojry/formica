@@ -7,6 +7,7 @@ export { EnumRenderer, enumTester } from './EnumRenderer.js';
 export { ObjectRenderer, objectTester } from './ObjectRenderer.js';
 export { ArrayRenderer, arrayTester } from './ArrayRenderer.js';
 export { UnknownRenderer, unknownTester } from './UnknownRenderer.js';
+export { CombinatorRenderer, combinatorTester } from './CombinatorRenderer.js';
 export { hasType, hasEnum } from './tester-utils.js';
 
 import { StringRenderer, stringTester } from './StringRenderer.js';
@@ -16,12 +17,14 @@ import { EnumRenderer, enumTester } from './EnumRenderer.js';
 import { ObjectRenderer, objectTester } from './ObjectRenderer.js';
 import { ArrayRenderer, arrayTester } from './ArrayRenderer.js';
 import { UnknownRenderer, unknownTester } from './UnknownRenderer.js';
+import { CombinatorRenderer, combinatorTester } from './CombinatorRenderer.js';
 
 export const defaultRenderers: ReactRendererEntry[] = [
   { tester: stringTester, renderer: StringRenderer },
   { tester: numberTester, renderer: NumberRenderer },
   { tester: booleanTester, renderer: BooleanRenderer },
   { tester: enumTester, renderer: EnumRenderer },
+  { tester: combinatorTester, renderer: CombinatorRenderer },
   { tester: objectTester, renderer: ObjectRenderer },
   { tester: arrayTester, renderer: ArrayRenderer },
   { tester: unknownTester, renderer: UnknownRenderer },

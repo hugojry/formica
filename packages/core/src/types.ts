@@ -160,7 +160,7 @@ export interface FormModel {
 export enum PipelineStage {
   NORMALIZE = 'NORMALIZE',
   RESOLVE_REFS = 'RESOLVE_REFS',
-  MERGE_ALLOF = 'MERGE_ALLOF',
+  MERGE_ALL_OF = 'MERGE_ALL_OF',
   EVALUATE_CONDITIONALS = 'EVALUATE_CONDITIONALS',
   EVALUATE_DEPENDENTS = 'EVALUATE_DEPENDENTS',
   RESOLVE_COMBINATORS = 'RESOLVE_COMBINATORS',
@@ -201,6 +201,7 @@ export interface FormStore {
   getModel(): FormModel;
   getData(): unknown;
   setData(path: string, value: unknown): void;
+  setCombinatorIndex(path: string, index: number): void;
   subscribe(listener: ModelSubscriber): () => void;
   subscribePath(path: string, listener: PathSubscriber): () => void;
 }
@@ -212,6 +213,7 @@ export interface FormStore {
 export interface RendererProps<RenderResult = unknown> {
   node: FieldNode;
   onChange: (value: unknown) => void;
+  setCombinatorIndex: (path: string, index: number) => void;
   renderChild: (path: string) => RenderResult;
 }
 

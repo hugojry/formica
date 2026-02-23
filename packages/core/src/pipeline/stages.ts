@@ -1,7 +1,7 @@
 import type { PipelineContext, JSONSchema, FieldNode, FieldConstraints, FieldOrigin, CombinatorInfo, ArrayMeta, JSONSchemaType } from '../types.js';
 import { normalizeSchemaDraft7 } from '../schema/normalize.js';
 import { resolveAllRefs } from '../schema/ref-resolver.js';
-import { appendPath, getByPath, setByPath } from '../model/path.js';
+import { appendPath, getByPath } from '../model/path.js';
 
 // ─── Stage: NORMALIZE ───
 
@@ -198,9 +198,11 @@ function evaluateConditionalsRecursive(
     const branch = matches ? result.then : result.else;
 
     if (branch) {
-      // Merge the matching branch into the schema
+      // Merge the matching branch into the schema, then re-evaluate
+      // in case the branch itself contains nested if/then/else
       const { if: _if, then: _then, else: _else, ...rest } = result;
-      result = mergeSchemas(rest, branch);
+      result = evaluateConditionalsRecursive(mergeSchemas(rest, branch), data, dataPath, deps);
+      return result;
     } else {
       delete result.if;
       delete result.then;
@@ -373,16 +375,70 @@ function evaluateDependentsRecursive(schema: JSONSchema, data: unknown): JSONSch
 // ─── Stage: RESOLVE_COMBINATORS ───
 
 export function resolveCombinators(ctx: PipelineContext): PipelineContext {
-  // Combinator resolution is handled during tree building.
-  // This stage is a pass-through that can be wrapped by middleware
-  // to inject custom combinator resolution logic.
+  const selections = ctx.meta.combinatorSelections as Map<string, number> | undefined;
+  if (!selections || selections.size === 0) return ctx;
+
+  ctx.meta.resolvedCombinators = new Map<string, CombinatorInfo>();
+  ctx.schema = resolveCombinatorRecursive(ctx.schema, '', selections, ctx.meta.resolvedCombinators as Map<string, CombinatorInfo>);
   return ctx;
+}
+
+function resolveCombinatorRecursive(
+  schema: JSONSchema,
+  path: string,
+  selections: Map<string, number>,
+  resolved: Map<string, CombinatorInfo>,
+): JSONSchema {
+  if (typeof schema !== 'object' || schema === null) return schema;
+
+  let result = { ...schema };
+
+  // Resolve oneOf/anyOf at this path if explicitly selected
+  if (result.oneOf || result.anyOf) {
+    const options = (result.oneOf ?? result.anyOf)!;
+    const combinatorType = result.oneOf ? 'oneOf' : 'anyOf';
+    const selectedIndex = selections.get(path);
+
+    if (selectedIndex !== undefined && selectedIndex >= 0 && selectedIndex < options.length) {
+      // Store CombinatorInfo for BUILD_TREE to attach to the node
+      resolved.set(path, {
+        type: combinatorType as 'oneOf' | 'anyOf',
+        options,
+        activeIndex: selectedIndex,
+        labels: options.map((opt, i) => opt.title ?? `Option ${i + 1}`),
+        ambiguous: false,
+      });
+
+      // Merge selected branch into schema, removing oneOf/anyOf
+      result = mergeSchemas(
+        { ...result, oneOf: undefined, anyOf: undefined },
+        options[selectedIndex],
+      );
+    }
+  }
+
+  // Recurse into properties
+  if (result.properties) {
+    result.properties = Object.fromEntries(
+      Object.entries(result.properties).map(([k, v]) => [
+        k,
+        resolveCombinatorRecursive(v, appendPath(path, k), selections, resolved),
+      ])
+    );
+  }
+
+  // Recurse into items
+  if (result.items && typeof result.items === 'object' && !Array.isArray(result.items)) {
+    result.items = resolveCombinatorRecursive(result.items, path, selections, resolved);
+  }
+
+  return result;
 }
 
 // ─── Stage: BUILD_TREE ───
 
 export function buildTree(ctx: PipelineContext): PipelineContext {
-  ctx.root = buildFieldNode(ctx.schema, ctx.data, '', 'root', false, ctx.index);
+  ctx.root = buildFieldNode(ctx.schema, ctx.data, '', 'root', false, ctx.index, ctx.meta);
   return ctx;
 }
 
@@ -393,6 +449,7 @@ function buildFieldNode(
   origin: FieldOrigin,
   required: boolean,
   index: Map<string, FieldNode>,
+  meta: Record<string, unknown>,
 ): FieldNode {
   const type = resolveType(schema, data);
   const constraints = extractConstraints(schema);
@@ -421,7 +478,7 @@ function buildFieldNode(
         { ...schema, oneOf: undefined, anyOf: undefined },
         options[combinator.activeIndex],
       );
-      const activeNode = buildFieldNode(activeSchema, data, path, origin, required, index);
+      const activeNode = buildFieldNode(activeSchema, data, path, origin, required, index, meta);
       // Use the active node's children
       children.push(...activeNode.children);
     }
@@ -436,7 +493,7 @@ function buildFieldNode(
 
     for (const [key, propSchema] of Object.entries(schema.properties)) {
       const childPath = appendPath(path, key);
-      const childNode = buildFieldNode(propSchema, objData[key], childPath, 'property', requiredSet.has(key), index);
+      const childNode = buildFieldNode(propSchema, objData[key], childPath, 'property', requiredSet.has(key), index, meta);
       children.push(childNode);
     }
   }
@@ -460,9 +517,15 @@ function buildFieldNode(
       const childSchema = schema.prefixItems?.[i] ?? itemSchema;
       const childPath = appendPath(path, i);
       const childOrigin: FieldOrigin = schema.prefixItems?.[i] ? 'prefixItem' : 'arrayItem';
-      const childNode = buildFieldNode(childSchema, item, childPath, childOrigin, false, index);
+      const childNode = buildFieldNode(childSchema, item, childPath, childOrigin, false, index, meta);
       children.push(childNode);
     });
+  }
+
+  // Attach CombinatorInfo from RESOLVE_COMBINATORS stage if this path was explicitly resolved
+  const resolvedCombinators = meta.resolvedCombinators as Map<string, CombinatorInfo> | undefined;
+  if (!combinator && resolvedCombinators?.has(path)) {
+    combinator = resolvedCombinators.get(path)!;
   }
 
   const node: FieldNode = {

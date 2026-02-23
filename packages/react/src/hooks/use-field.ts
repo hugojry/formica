@@ -5,6 +5,7 @@ import { useFormStore } from '../context.js';
 export interface UseFieldReturn {
   node: FieldNode | undefined;
   onChange: (value: unknown) => void;
+  setCombinatorIndex: (path: string, index: number) => void;
 }
 
 export function useField(path: string): UseFieldReturn {
@@ -27,5 +28,10 @@ export function useField(path: string): UseFieldReturn {
     [store, path],
   );
 
-  return { node, onChange };
+  const setCombinatorIndex = useCallback(
+    (p: string, index: number) => store.setCombinatorIndex(p, index),
+    [store],
+  );
+
+  return { node, onChange, setCombinatorIndex };
 }
