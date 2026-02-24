@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test';
-import { runPipeline, PipelineStage } from '@formica/core';
 import type { JSONSchema, PipelineConfig } from '@formica/core';
-import { createValidationMiddleware, getFieldErrors, hasFieldErrors } from '../index.js';
+import { PipelineStage, runPipeline } from '@formica/core';
 import type { ValidationError } from '../index.js';
+import { createValidationMiddleware, getFieldErrors, hasFieldErrors } from '../index.js';
 
 function runWithValidation(schema: JSONSchema, data?: unknown) {
   const config: PipelineConfig = {
@@ -180,7 +180,9 @@ describe('createValidationMiddleware', () => {
         },
       },
     };
-    const model = runWithValidation(schema, { address: { city: 'Springfield' } });
+    const model = runWithValidation(schema, {
+      address: { city: 'Springfield' },
+    });
     const cityNode = model.index.get('/address/city')!;
     expect(hasFieldErrors(cityNode)).toBe(false);
   });

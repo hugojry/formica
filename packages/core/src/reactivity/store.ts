@@ -1,6 +1,14 @@
-import type { FormStore, PipelineContext, JSONSchema, PipelineConfig, PathSubscriber, ModelSubscriber, FieldNode } from '../types.js';
-import { runPipeline, runPipelinePrepared, prepareSchema } from '../pipeline/pipeline.js';
 import { getByPath, setByPath } from '../model/path.js';
+import { prepareSchema, runPipeline, runPipelinePrepared } from '../pipeline/pipeline.js';
+import type {
+  FieldNode,
+  FormStore,
+  JSONSchema,
+  ModelSubscriber,
+  PathSubscriber,
+  PipelineConfig,
+  PipelineContext,
+} from '../types.js';
 import { computeDirtyPaths, isPathAffected } from './differ.js';
 
 export function createFormStore(
@@ -13,9 +21,7 @@ export function createFormStore(
   const combinatorSelections = new Map<string, number>();
 
   function getMeta(): Record<string, unknown> {
-    return combinatorSelections.size > 0
-      ? { combinatorSelections }
-      : {};
+    return combinatorSelections.size > 0 ? { combinatorSelections } : {};
   }
 
   const rebuild = prepared
@@ -55,7 +61,10 @@ export function createFormStore(
       const prevNode = prevModel.index.get(subPath);
       const newNode = model.index.get(subPath);
 
-      if (prevNode !== newNode && (prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode))) {
+      if (
+        prevNode !== newNode &&
+        (prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode))
+      ) {
         for (const listener of listeners) {
           if (newNode) listener(newNode);
         }
@@ -84,7 +93,10 @@ export function createFormStore(
       const prevNode = prevModel.index.get(subPath);
       const newNode = model.index.get(subPath);
 
-      if (prevNode !== newNode && (prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode))) {
+      if (
+        prevNode !== newNode &&
+        (prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode))
+      ) {
         for (const listener of listeners) {
           if (newNode) listener(newNode);
         }
@@ -114,7 +126,14 @@ export function createFormStore(
     };
   }
 
-  return { getModel, getData, setData, setCombinatorIndex, subscribe, subscribePath };
+  return {
+    getModel,
+    getData,
+    setData,
+    setCombinatorIndex,
+    subscribe,
+    subscribePath,
+  };
 }
 
 function nodeStructureChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {

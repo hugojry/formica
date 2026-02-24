@@ -1,6 +1,6 @@
-import { createContext, useContext } from 'react';
+import type { RendererEntry, RendererProps } from '@formica/core';
 import type { ComponentType, ReactNode } from 'react';
-import type { RendererProps, RendererEntry } from '@formica/core';
+import { createContext, useContext } from 'react';
 
 export type ReactRendererProps = RendererProps<ReactNode>;
 

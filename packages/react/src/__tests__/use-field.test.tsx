@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test';
-import { createElement } from 'react';
-import { createFormStore } from '@formica/core';
 import type { JSONSchema } from '@formica/core';
+import { createFormStore } from '@formica/core';
+import { createElement } from 'react';
 import { FormProvider } from '../context.js';
 import { useField } from '../hooks/use-field.js';
-import { renderHook, act } from './helpers.js';
+import { act, renderHook } from './helpers.js';
 
 const schema: JSONSchema = {
   type: 'object',

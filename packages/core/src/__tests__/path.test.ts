@@ -1,7 +1,13 @@
 import { describe, expect, test } from 'bun:test';
 import {
-  parsePath, buildPath, appendPath, parentPath,
-  isDescendant, getByPath, setByPath, deleteByPath,
+  appendPath,
+  buildPath,
+  deleteByPath,
+  getByPath,
+  isDescendant,
+  parentPath,
+  parsePath,
+  setByPath,
 } from '../model/path.js';
 
 describe('parsePath', () => {

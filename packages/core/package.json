@@ -6,6 +6,6 @@
   "types": "src/index.ts",
   "scripts": {
     "test": "bun test",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsgo -p tsconfig.json"
   }
 }

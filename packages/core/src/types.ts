@@ -1,6 +1,13 @@
 // ─── JSON Schema Types ───
 
-export type JSONSchemaType = 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array' | 'null';
+export type JSONSchemaType =
+  | 'string'
+  | 'number'
+  | 'integer'
+  | 'boolean'
+  | 'object'
+  | 'array'
+  | 'null';
 
 export interface JSONSchema {
   // Meta

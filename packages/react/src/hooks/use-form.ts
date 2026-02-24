@@ -1,5 +1,5 @@
-import { useCallback, useSyncExternalStore } from 'react';
 import type { PipelineContext } from '@formica/core';
+import { useCallback, useSyncExternalStore } from 'react';
 import { useFormStore } from '../context.js';
 
 export interface UseFormReturn {

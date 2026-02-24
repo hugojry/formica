@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test';
-import { createElement } from 'react';
-import { createFormStore } from '@formica/core';
 import type { JSONSchema } from '@formica/core';
+import { createFormStore } from '@formica/core';
+import { createElement } from 'react';
 import { FormProvider } from '../context.js';
 import { useForm } from '../hooks/use-form.js';
-import { renderHook, act } from './helpers.js';
+import { act, renderHook } from './helpers.js';
 
 const schema: JSONSchema = {
   type: 'object',
@@ -22,7 +22,9 @@ function createWrapper(store: ReturnType<typeof createFormStore>) {
 describe('useForm', () => {
   test('returns initial model', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    const { result } = renderHook(() => useForm(), { wrapper: createWrapper(store) });
+    const { result } = renderHook(() => useForm(), {
+      wrapper: createWrapper(store),
+    });
 
     expect(result.current.model.root!.type).toBe('object');
     expect(result.current.model.index.get('/name')?.value).toBe('Alice');
@@ -30,7 +32,9 @@ describe('useForm', () => {
 
   test('re-renders on setData', () => {
     const store = createFormStore(schema, { name: 'Alice' });
-    const { result } = renderHook(() => useForm(), { wrapper: createWrapper(store) });
+    const { result } = renderHook(() => useForm(), {
+      wrapper: createWrapper(store),
+    });
 
     const modelBefore = result.current.model;
 
@@ -44,7 +48,9 @@ describe('useForm', () => {
 
   test('setData is stable across renders', () => {
     const store = createFormStore(schema, { name: 'Alice' });
-    const { result } = renderHook(() => useForm(), { wrapper: createWrapper(store) });
+    const { result } = renderHook(() => useForm(), {
+      wrapper: createWrapper(store),
+    });
 
     const setDataBefore = result.current.setData;
 

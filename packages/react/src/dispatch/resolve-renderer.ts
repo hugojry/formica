@@ -1,5 +1,5 @@
-import type { ComponentType } from 'react';
 import type { FieldNode } from '@formica/core';
+import type { ComponentType } from 'react';
 import type { ReactRendererEntry, ReactRendererProps } from './renderer-context.js';
 
 export function resolveRenderer(

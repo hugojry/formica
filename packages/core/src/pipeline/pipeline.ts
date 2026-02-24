@@ -1,13 +1,16 @@
-import type { JSONSchema, PipelineContext, PipelineConfig, Middleware, PipelineStage, PreparedSchema } from '../types.js';
+import type {
+  JSONSchema,
+  Middleware,
+  PipelineConfig,
+  PipelineContext,
+  PipelineStage,
+  PreparedSchema,
+} from '../types.js';
 import { PipelineStage as Stage } from '../types.js';
 import { createContext } from './context.js';
 import * as stages from './stages.js';
 
-const STATIC_STAGES: PipelineStage[] = [
-  Stage.NORMALIZE,
-  Stage.RESOLVE_REFS,
-  Stage.MERGE_ALL_OF,
-];
+const STATIC_STAGES: PipelineStage[] = [Stage.NORMALIZE, Stage.RESOLVE_REFS, Stage.MERGE_ALL_OF];
 
 const DYNAMIC_STAGES: PipelineStage[] = [
   Stage.EVALUATE_CONDITIONALS,
@@ -52,7 +55,11 @@ function composeMiddleware(
   };
 }
 
-function runStages(ctx: PipelineContext, stageList: PipelineStage[], config?: PipelineConfig): PipelineContext {
+function runStages(
+  ctx: PipelineContext,
+  stageList: PipelineStage[],
+  config?: PipelineConfig,
+): PipelineContext {
   for (const stage of stageList) {
     ctx.stage = stage;
     const middlewares = config?.middleware?.[stage] ?? [];
@@ -73,7 +80,12 @@ export function prepareSchema(schema: JSONSchema, config?: PipelineConfig): Prep
 }
 
 /** Run the full pipeline (all stages) from a raw JSON Schema. */
-export function runPipeline(schema: JSONSchema, data: unknown, config?: PipelineConfig, meta?: Record<string, unknown>): PipelineContext {
+export function runPipeline(
+  schema: JSONSchema,
+  data: unknown,
+  config?: PipelineConfig,
+  meta?: Record<string, unknown>,
+): PipelineContext {
   let ctx = createContext(schema, data);
   if (meta) Object.assign(ctx.meta, meta);
   ctx = runStages(ctx, [...STATIC_STAGES, ...DYNAMIC_STAGES], config);
@@ -81,7 +93,12 @@ export function runPipeline(schema: JSONSchema, data: unknown, config?: Pipeline
 }
 
 /** Run only the dynamic pipeline stages from a PreparedSchema. */
-export function runPipelinePrepared(prepared: PreparedSchema, data: unknown, config?: PipelineConfig, meta?: Record<string, unknown>): PipelineContext {
+export function runPipelinePrepared(
+  prepared: PreparedSchema,
+  data: unknown,
+  config?: PipelineConfig,
+  meta?: Record<string, unknown>,
+): PipelineContext {
   let ctx = createContext(prepared.schema, data);
   ctx.meta = { ...prepared.meta };
   if (meta) Object.assign(ctx.meta, meta);

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import { createElement } from 'react';
-import { createFormStore } from '@formica/core';
 import type { JSONSchema } from '@formica/core';
+import { createFormStore } from '@formica/core';
+import { createElement } from 'react';
 import { FormProvider, useFormStore } from '../context.js';
 import { renderHook } from './helpers.js';
 

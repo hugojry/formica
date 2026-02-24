@@ -1,4 +1,4 @@
-import type { JSONSchema, PipelineContext, PipelineStage, FieldNode } from '../types.js';
+import type { JSONSchema, PipelineContext, PipelineStage } from '../types.js';
 
 export function createContext(schema: JSONSchema, data: unknown): PipelineContext {
   return {

@@ -5,8 +5,5 @@
     "outDir": "dist"
   },
   "include": ["src"],
-  "references": [
-    { "path": "../core" },
-    { "path": "../react" }
-  ]
+  "references": [{ "path": "../core" }, { "path": "../react" }]
 }

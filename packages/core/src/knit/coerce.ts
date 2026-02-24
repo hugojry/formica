@@ -11,13 +11,13 @@ export function coerceValue(value: unknown, targetType: JSONSchemaType): unknown
     case 'number':
       if (typeof value === 'string') {
         const n = Number(value);
-        return isNaN(n) ? value : n;
+        return Number.isNaN(n) ? value : n;
       }
       return value;
     case 'integer':
       if (typeof value === 'string') {
         const n = parseInt(value, 10);
-        return isNaN(n) ? value : n;
+        return Number.isNaN(n) ? value : n;
       }
       if (typeof value === 'number') return Math.trunc(value);
       return value;

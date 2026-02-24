@@ -7,13 +7,13 @@ export function parsePath(pointer: string): string[] {
   return pointer
     .slice(1)
     .split('/')
-    .map(s => s.replace(/~1/g, '/').replace(/~0/g, '~'));
+    .map((s) => s.replace(/~1/g, '/').replace(/~0/g, '~'));
 }
 
 /** Build a JSON Pointer from segments. */
 export function buildPath(segments: string[]): string {
   if (segments.length === 0) return '';
-  return '/' + segments.map(s => s.replace(/~/g, '~0').replace(/\//g, '~1')).join('/');
+  return '/' + segments.map((s) => s.replace(/~/g, '~0').replace(/\//g, '~1')).join('/');
 }
 
 /** Append a segment to a JSON Pointer. */
@@ -32,7 +32,7 @@ export function parentPath(pointer: string): string {
 /** Check if `child` is a descendant of `ancestor`. */
 export function isDescendant(ancestor: string, child: string): boolean {
   if (ancestor === '') return child !== '';
-  return child.startsWith(ancestor + '/');
+  return child.startsWith(`${ancestor}/`);
 }
 
 /** Get a value from nested data by JSON Pointer. */
@@ -65,7 +65,8 @@ function setRecursive(current: unknown, segs: string[], idx: number, value: unkn
     return copy;
   }
 
-  const obj = (current != null && typeof current === 'object') ? current as Record<string, unknown> : {};
+  const obj =
+    current != null && typeof current === 'object' ? (current as Record<string, unknown>) : {};
   return {
     ...obj,
     [seg]: isLast ? value : setRecursive(obj[seg], segs, idx + 1, value),

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { createFormStore } from '../reactivity/store.js';
 import { runPipeline } from '../pipeline/pipeline.js';
+import { createFormStore } from '../reactivity/store.js';
 import type { JSONSchema } from '../types.js';
 
 describe('FormStore', () => {
@@ -49,7 +49,7 @@ describe('FormStore', () => {
   test('subscribe notifies on data change', () => {
     const store = createFormStore(schema, { name: 'Alice' });
     const models: unknown[] = [];
-    store.subscribe(m => models.push(m.data));
+    store.subscribe((m) => models.push(m.data));
     store.setData('/name', 'Bob');
     expect(models).toHaveLength(1);
     expect((models[0] as Record<string, unknown>).name).toBe('Bob');
@@ -60,8 +60,8 @@ describe('FormStore', () => {
     const nameValues: unknown[] = [];
     const ageValues: unknown[] = [];
 
-    store.subscribePath('/name', node => nameValues.push(node.value));
-    store.subscribePath('/age', node => ageValues.push(node.value));
+    store.subscribePath('/name', (node) => nameValues.push(node.value));
+    store.subscribePath('/age', (node) => ageValues.push(node.value));
 
     store.setData('/name', 'Bob');
     expect(nameValues).toEqual(['Bob']);
@@ -71,7 +71,7 @@ describe('FormStore', () => {
   test('unsubscribe works', () => {
     const store = createFormStore(schema, { name: 'Alice' });
     const values: unknown[] = [];
-    const unsub = store.subscribe(m => values.push(m.data));
+    const unsub = store.subscribe((m) => values.push(m.data));
     store.setData('/name', 'Bob');
     unsub();
     store.setData('/name', 'Charlie');
@@ -143,7 +143,11 @@ describe('dirty path filtering', () => {
         email: { type: 'string' },
       },
     };
-    const store = createFormStore(schema, { name: 'Alice', age: 30, email: 'a@b.com' });
+    const store = createFormStore(schema, {
+      name: 'Alice',
+      age: 30,
+      email: 'a@b.com',
+    });
     const notifications: string[] = [];
 
     store.subscribePath('/name', () => notifications.push('name'));
@@ -167,7 +171,9 @@ describe('dirty path filtering', () => {
         },
       },
     };
-    const store = createFormStore(schema, { address: { city: 'NYC', zip: '10001' } });
+    const store = createFormStore(schema, {
+      address: { city: 'NYC', zip: '10001' },
+    });
     const notifications: string[] = [];
 
     store.subscribePath('/address', () => notifications.push('address'));
@@ -241,7 +247,10 @@ describe('dirty path filtering', () => {
         },
       },
     };
-    const store = createFormStore(schema, { a: { x: 'hello' }, b: { y: 'world' } });
+    const store = createFormStore(schema, {
+      a: { x: 'hello' },
+      b: { y: 'world' },
+    });
     const notifications: string[] = [];
 
     store.subscribePath('/a/x', () => notifications.push('a/x'));

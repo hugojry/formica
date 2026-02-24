@@ -1,13 +1,24 @@
-import { createElement } from 'react';
-import type { ReactRendererProps } from '@formica/react';
-import { hasType } from './tester-utils.js';
 import type { FieldNode } from '@formica/core';
+import type { ReactRendererProps } from '@formica/react';
+import { createElement } from 'react';
+import { hasType } from './tester-utils.js';
 
 export function BooleanRenderer({ node, onChange }: ReactRendererProps) {
   const label = node.schema.title ?? node.path.split('/').pop() ?? '';
 
-  return createElement('div', { style: { marginBottom: 8 } },
-    createElement('label', { style: { display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 } },
+  return createElement(
+    'div',
+    { style: { marginBottom: 8 } },
+    createElement(
+      'label',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          fontWeight: 500,
+        },
+      },
       createElement('input', {
         type: 'checkbox',
         checked: Boolean(node.value),
@@ -18,13 +29,21 @@ export function BooleanRenderer({ node, onChange }: ReactRendererProps) {
       node.required ? createElement('span', { style: { color: 'red' } }, ' *') : null,
     ),
     node.schema.description
-      ? createElement('p', { style: { margin: '2px 0 0', fontSize: '0.85em', color: '#666' } }, node.schema.description)
+      ? createElement(
+          'p',
+          { style: { margin: '2px 0 0', fontSize: '0.85em', color: '#666' } },
+          node.schema.description,
+        )
       : null,
     ...((node.extensions.errors ?? []) as Array<{ message: string }>).map((err, i) =>
-      createElement('p', {
-        key: i,
-        style: { margin: '2px 0 0', fontSize: '0.85em', color: '#d32f2f' },
-      }, err.message),
+      createElement(
+        'p',
+        {
+          key: i,
+          style: { margin: '2px 0 0', fontSize: '0.85em', color: '#d32f2f' },
+        },
+        err.message,
+      ),
     ),
   );
 }

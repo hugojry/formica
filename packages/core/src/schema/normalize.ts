@@ -17,11 +17,12 @@ export function normalizeSchemaDraft7(schema: JSONSchema): JSONSchema {
   if (Array.isArray(schema.items)) {
     schema.prefixItems = schema.items as JSONSchema[];
     if (schema.additionalItems !== undefined) {
-      schema.items = schema.additionalItems === false
-        ? false as any
-        : schema.additionalItems === true
-          ? {} as JSONSchema
-          : schema.additionalItems as JSONSchema;
+      schema.items =
+        schema.additionalItems === false
+          ? (false as any)
+          : schema.additionalItems === true
+            ? ({} as JSONSchema)
+            : (schema.additionalItems as JSONSchema);
     } else {
       delete schema.items;
     }
@@ -83,11 +84,11 @@ export function normalizeSchemaDraft7(schema: JSONSchema): JSONSchema {
     normalizeSchemaDraft7(schema.items);
   }
   if (schema.prefixItems) {
-    schema.prefixItems.forEach(s => normalizeSchemaDraft7(s));
+    schema.prefixItems.forEach((s) => normalizeSchemaDraft7(s));
   }
   for (const kw of ['allOf', 'anyOf', 'oneOf'] as const) {
     if (schema[kw]) {
-      schema[kw]!.forEach(s => normalizeSchemaDraft7(s));
+      schema[kw]!.forEach((s) => normalizeSchemaDraft7(s));
     }
   }
   if (schema.not) normalizeSchemaDraft7(schema.not);

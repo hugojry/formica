@@ -1,6 +1,6 @@
-import { createContext, createElement, useContext, useRef } from 'react';
-import { createFormStore } from '@formica/core';
 import type { FormStore, JSONSchema, PipelineConfig } from '@formica/core';
+import { createFormStore } from '@formica/core';
+import { createContext, createElement, useContext, useRef } from 'react';
 
 export const FormContext = createContext<FormStore | null>(null);
 

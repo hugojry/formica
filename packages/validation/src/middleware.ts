@@ -1,7 +1,7 @@
+import type { JSONSchema, Middleware } from '@formica/core';
+import type { ValidateFunction } from 'ajv';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import type { ValidateFunction } from 'ajv';
-import type { JSONSchema, Middleware } from '@formica/core';
 import type { ValidationError } from './errors.js';
 
 export function createValidationMiddleware(): Middleware {
@@ -18,7 +18,7 @@ export function createValidationMiddleware(): Middleware {
     return validate;
   }
 
-  return (ctx, next) => {
+  return (_ctx, next) => {
     const result = next();
 
     const allErrors = new Map<string, ValidationError[]>();

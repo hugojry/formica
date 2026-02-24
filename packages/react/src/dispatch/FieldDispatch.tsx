@@ -1,5 +1,5 @@
-import { createElement } from 'react';
 import type { ReactNode } from 'react';
+import { createElement } from 'react';
 import { useField } from '../hooks/use-field.js';
 import { useRenderers } from './renderer-context.js';
 import { resolveRenderer } from './resolve-renderer.js';
@@ -20,5 +20,10 @@ export function FieldDispatch({ path }: FieldDispatchProps) {
   const renderChild = (childPath: string): ReactNode =>
     createElement(FieldDispatch, { key: childPath, path: childPath });
 
-  return createElement(Renderer, { node, onChange, setCombinatorIndex, renderChild });
+  return createElement(Renderer, {
+    node,
+    onChange,
+    setCombinatorIndex,
+    renderChild,
+  });
 }

@@ -1,14 +1,19 @@
 {
   "name": "formica",
   "private": true,
-  "workspaces": ["packages/*", "examples/*"],
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
   "scripts": {
     "test": "bun test",
     "build": "bun run --filter '*' build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit",
+    "format": "biome format --write .",
+    "check": "biome check ."
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
+    "@biomejs/biome": "^2.4.4",
     "@types/react": "^19.0.0",
     "react": "^19.0.0"
   }

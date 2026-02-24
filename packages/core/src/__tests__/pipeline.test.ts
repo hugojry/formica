@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { runPipeline } from '../pipeline/pipeline.js';
-import { PipelineStage } from '../types.js';
 import type { JSONSchema, Middleware, PipelineConfig } from '../types.js';
+import { PipelineStage } from '../types.js';
 
 describe('runPipeline — basic schemas', () => {
   test('simple string property', () => {
@@ -172,10 +172,7 @@ describe('runPipeline — allOf', () => {
       type: 'object',
       properties: {
         field: {
-          allOf: [
-            { type: 'number', minimum: 0 },
-            { maximum: 100 },
-          ],
+          allOf: [{ type: 'number', minimum: 0 }, { maximum: 100 }],
         },
       },
     };
@@ -337,10 +334,7 @@ describe('runPipeline — oneOf', () => {
 
   test('null activeIndex when no match', () => {
     const schema: JSONSchema = {
-      oneOf: [
-        { type: 'string' },
-        { type: 'number' },
-      ],
+      oneOf: [{ type: 'string' }, { type: 'number' }],
     };
     const model = runPipeline(schema, true);
     expect(model.root!.combinator!.activeIndex).toBeNull();
@@ -432,7 +426,7 @@ describe('runPipeline — index', () => {
 describe('middleware', () => {
   test('middleware can wrap a stage', () => {
     const log: string[] = [];
-    const middleware: Middleware = (ctx, next) => {
+    const middleware: Middleware = (_ctx, next) => {
       log.push('before');
       const result = next();
       log.push('after');
@@ -450,7 +444,7 @@ describe('middleware', () => {
   });
 
   test('middleware can modify context', () => {
-    const middleware: Middleware = (ctx, next) => {
+    const middleware: Middleware = (_ctx, next) => {
       const result = next();
       // Add extension to all nodes
       for (const [, node] of result.index) {
@@ -492,8 +486,18 @@ describe('middleware', () => {
 
   test('multiple middleware compose in order', () => {
     const log: string[] = [];
-    const mw1: Middleware = (ctx, next) => { log.push('1-before'); const r = next(); log.push('1-after'); return r; };
-    const mw2: Middleware = (ctx, next) => { log.push('2-before'); const r = next(); log.push('2-after'); return r; };
+    const mw1: Middleware = (_ctx, next) => {
+      log.push('1-before');
+      const r = next();
+      log.push('1-after');
+      return r;
+    };
+    const mw2: Middleware = (_ctx, next) => {
+      log.push('2-before');
+      const r = next();
+      log.push('2-after');
+      return r;
+    };
 
     const config: PipelineConfig = {
       middleware: { [PipelineStage.FINALIZE]: [mw1, mw2] },

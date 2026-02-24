@@ -1,5 +1,5 @@
-import { useCallback, useSyncExternalStore } from 'react';
 import type { FieldNode } from '@formica/core';
+import { useCallback, useSyncExternalStore } from 'react';
 import { useFormStore } from '../context.js';
 
 export interface UseFieldReturn {
@@ -16,17 +16,11 @@ export function useField(path: string): UseFieldReturn {
     [store, path],
   );
 
-  const getSnapshot = useCallback(
-    () => store.getModel().index.get(path),
-    [store, path],
-  );
+  const getSnapshot = useCallback(() => store.getModel().index.get(path), [store, path]);
 
   const node = useSyncExternalStore(subscribe, getSnapshot);
 
-  const onChange = useCallback(
-    (value: unknown) => store.setData(path, value),
-    [store, path],
-  );
+  const onChange = useCallback((value: unknown) => store.setData(path, value), [store, path]);
 
   const setCombinatorIndex = useCallback(
     (p: string, index: number) => store.setCombinatorIndex(p, index),

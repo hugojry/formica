@@ -30,7 +30,9 @@ describe('resolveAllRefs', () => {
       },
     };
     const result = resolveAllRefs(schema);
-    expect(result.properties!.address.properties!.street).toEqual({ type: 'string' });
+    expect(result.properties!.address.properties!.street).toEqual({
+      type: 'string',
+    });
   });
 
   test('handles circular $ref without infinite loop', () => {
@@ -66,11 +68,10 @@ describe('resolveAllRefs', () => {
 
   test('resolves refs in allOf', () => {
     const schema: JSONSchema = {
-      $defs: { Base: { type: 'object', properties: { id: { type: 'number' } } } },
-      allOf: [
-        { $ref: '#/$defs/Base' },
-        { properties: { name: { type: 'string' } } },
-      ],
+      $defs: {
+        Base: { type: 'object', properties: { id: { type: 'number' } } },
+      },
+      allOf: [{ $ref: '#/$defs/Base' }, { properties: { name: { type: 'string' } } }],
     };
     const result = resolveAllRefs(schema);
     expect(result.allOf![0].properties!.id).toEqual({ type: 'number' });

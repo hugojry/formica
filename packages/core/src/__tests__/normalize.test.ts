@@ -117,6 +117,8 @@ describe('normalizeSchemaDraft7', () => {
       },
     };
     const result = normalizeSchemaDraft7(structuredClone(schema));
-    expect(result.properties!.nested.$defs).toEqual({ Inner: { type: 'boolean' } });
+    expect(result.properties!.nested.$defs).toEqual({
+      Inner: { type: 'boolean' },
+    });
   });
 });

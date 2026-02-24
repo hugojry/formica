@@ -40,13 +40,15 @@ function resolveNode(
   const result: JSONSchema = { ...node };
 
   if (result.$defs) {
-    result.$defs = mapValues(result.$defs, v => resolveNode(v, defs, seen));
+    result.$defs = mapValues(result.$defs, (v) => resolveNode(v, defs, seen));
   }
   if (result.properties) {
-    result.properties = mapValues(result.properties, v => resolveNode(v, defs, seen));
+    result.properties = mapValues(result.properties, (v) => resolveNode(v, defs, seen));
   }
   if (result.patternProperties) {
-    result.patternProperties = mapValues(result.patternProperties, v => resolveNode(v, defs, seen));
+    result.patternProperties = mapValues(result.patternProperties, (v) =>
+      resolveNode(v, defs, seen),
+    );
   }
   if (result.additionalProperties && typeof result.additionalProperties === 'object') {
     result.additionalProperties = resolveNode(result.additionalProperties, defs, seen);
@@ -55,11 +57,11 @@ function resolveNode(
     result.items = resolveNode(result.items, defs, seen);
   }
   if (result.prefixItems) {
-    result.prefixItems = result.prefixItems.map(s => resolveNode(s, defs, seen));
+    result.prefixItems = result.prefixItems.map((s) => resolveNode(s, defs, seen));
   }
   for (const kw of ['allOf', 'anyOf', 'oneOf'] as const) {
     if (result[kw]) {
-      result[kw] = result[kw]!.map(s => resolveNode(s, defs, seen));
+      result[kw] = result[kw]!.map((s) => resolveNode(s, defs, seen));
     }
   }
   if (result.not) result.not = resolveNode(result.not, defs, seen);
@@ -68,7 +70,7 @@ function resolveNode(
   if (result.else) result.else = resolveNode(result.else, defs, seen);
   if (result.contains) result.contains = resolveNode(result.contains, defs, seen);
   if (result.dependentSchemas) {
-    result.dependentSchemas = mapValues(result.dependentSchemas, v => resolveNode(v, defs, seen));
+    result.dependentSchemas = mapValues(result.dependentSchemas, (v) => resolveNode(v, defs, seen));
   }
 
   return result;
@@ -84,10 +86,7 @@ function resolveRef(ref: string, defs: Record<string, JSONSchema>): JSONSchema |
   return undefined;
 }
 
-function mapValues<T>(
-  obj: Record<string, T>,
-  fn: (v: T) => T,
-): Record<string, T> {
+function mapValues<T>(obj: Record<string, T>, fn: (v: T) => T): Record<string, T> {
   const result: Record<string, T> = {};
   for (const [k, v] of Object.entries(obj)) {
     result[k] = fn(v);

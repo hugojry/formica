@@ -1,4 +1,4 @@
-import type { FieldNode, JSONSchema, FieldOrigin, JSONSchemaType } from '../types.js';
+import type { FieldNode, JSONSchema } from '../types.js';
 
 /** Create a minimal FieldNode. Primarily used for testing. */
 export function createFieldNode(

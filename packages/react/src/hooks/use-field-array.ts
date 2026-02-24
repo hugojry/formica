@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
-import { getByPath } from '@formica/core';
 import type { FieldNode } from '@formica/core';
+import { getByPath } from '@formica/core';
+import { useCallback } from 'react';
 import { useFormStore } from '../context.js';
 import { useField } from './use-field.js';
 

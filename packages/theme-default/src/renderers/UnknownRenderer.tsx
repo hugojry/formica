@@ -1,9 +1,19 @@
-import { createElement } from 'react';
-import type { ReactRendererProps } from '@formica/react';
 import type { FieldNode } from '@formica/core';
+import type { ReactRendererProps } from '@formica/react';
+import { createElement } from 'react';
 
 export function UnknownRenderer({ node }: ReactRendererProps) {
-  return createElement('div', { style: { marginBottom: 8, padding: 8, background: '#fff3cd', borderRadius: 4, fontSize: '0.85em' } },
+  return createElement(
+    'div',
+    {
+      style: {
+        marginBottom: 8,
+        padding: 8,
+        background: '#fff3cd',
+        borderRadius: 4,
+        fontSize: '0.85em',
+      },
+    },
     createElement('strong', null, 'Unknown field: '),
     `${node.path} (type: ${Array.isArray(node.type) ? node.type.join(' | ') : node.type})`,
   );

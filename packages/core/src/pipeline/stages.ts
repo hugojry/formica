@@ -1,7 +1,16 @@
-import type { PipelineContext, JSONSchema, FieldNode, FieldConstraints, FieldOrigin, CombinatorInfo, ArrayMeta, JSONSchemaType } from '../types.js';
+import { appendPath, getByPath } from '../model/path.js';
 import { normalizeSchemaDraft7 } from '../schema/normalize.js';
 import { resolveAllRefs } from '../schema/ref-resolver.js';
-import { appendPath, getByPath } from '../model/path.js';
+import type {
+  ArrayMeta,
+  CombinatorInfo,
+  FieldConstraints,
+  FieldNode,
+  FieldOrigin,
+  JSONSchema,
+  JSONSchemaType,
+  PipelineContext,
+} from '../types.js';
 
 // ─── Stage: NORMALIZE ───
 
@@ -32,18 +41,18 @@ function mergeAllOfRecursive(schema: JSONSchema): JSONSchema {
   // First recurse into subschemas
   if (result.properties) {
     result.properties = Object.fromEntries(
-      Object.entries(result.properties).map(([k, v]) => [k, mergeAllOfRecursive(v)])
+      Object.entries(result.properties).map(([k, v]) => [k, mergeAllOfRecursive(v)]),
     );
   }
   if (result.items && typeof result.items === 'object' && !Array.isArray(result.items)) {
     result.items = mergeAllOfRecursive(result.items);
   }
   if (result.prefixItems) {
-    result.prefixItems = result.prefixItems.map(s => mergeAllOfRecursive(s));
+    result.prefixItems = result.prefixItems.map((s) => mergeAllOfRecursive(s));
   }
   for (const kw of ['anyOf', 'oneOf'] as const) {
     if (result[kw]) {
-      result[kw] = result[kw]!.map(s => mergeAllOfRecursive(s));
+      result[kw] = result[kw]!.map((s) => mergeAllOfRecursive(s));
     }
   }
   if (result.if) result.if = mergeAllOfRecursive(result.if);
@@ -51,16 +60,16 @@ function mergeAllOfRecursive(schema: JSONSchema): JSONSchema {
   if (result.else) result.else = mergeAllOfRecursive(result.else);
   if (result.dependentSchemas) {
     result.dependentSchemas = Object.fromEntries(
-      Object.entries(result.dependentSchemas).map(([k, v]) => [k, mergeAllOfRecursive(v)])
+      Object.entries(result.dependentSchemas).map(([k, v]) => [k, mergeAllOfRecursive(v)]),
     );
   }
 
   // Merge allOf
   if (result.allOf) {
-    const merged = result.allOf.reduce(
-      (acc, sub) => mergeSchemas(acc, mergeAllOfRecursive(sub)),
-      { ...result, allOf: undefined } as JSONSchema,
-    );
+    const merged = result.allOf.reduce((acc, sub) => mergeSchemas(acc, mergeAllOfRecursive(sub)), {
+      ...result,
+      allOf: undefined,
+    } as JSONSchema);
     delete merged.allOf;
     result = merged;
   }
@@ -76,8 +85,8 @@ function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
     if (result.type) {
       const aTypes = Array.isArray(result.type) ? result.type : [result.type];
       const bTypes = Array.isArray(b.type) ? b.type : [b.type];
-      const intersection = aTypes.filter(t => bTypes.includes(t));
-      result.type = intersection.length === 1 ? intersection[0] : intersection as any;
+      const intersection = aTypes.filter((t) => bTypes.includes(t));
+      result.type = intersection.length === 1 ? intersection[0] : (intersection as any);
     } else {
       result.type = b.type;
     }
@@ -101,19 +110,45 @@ function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
   }
 
   // Merge numeric constraints (tightest wins)
-  for (const k of ['minimum', 'exclusiveMinimum', 'minLength', 'minItems', 'minProperties'] as const) {
+  for (const k of [
+    'minimum',
+    'exclusiveMinimum',
+    'minLength',
+    'minItems',
+    'minProperties',
+  ] as const) {
     if (b[k] !== undefined) {
-      result[k] = result[k] !== undefined ? Math.max(result[k] as number, b[k] as number) : b[k] as any;
+      result[k] =
+        result[k] !== undefined ? Math.max(result[k] as number, b[k] as number) : (b[k] as any);
     }
   }
-  for (const k of ['maximum', 'exclusiveMaximum', 'maxLength', 'maxItems', 'maxProperties'] as const) {
+  for (const k of [
+    'maximum',
+    'exclusiveMaximum',
+    'maxLength',
+    'maxItems',
+    'maxProperties',
+  ] as const) {
     if (b[k] !== undefined) {
-      result[k] = result[k] !== undefined ? Math.min(result[k] as number, b[k] as number) : b[k] as any;
+      result[k] =
+        result[k] !== undefined ? Math.min(result[k] as number, b[k] as number) : (b[k] as any);
     }
   }
 
   // Scalars from b override
-  for (const k of ['pattern', 'format', 'const', 'title', 'description', 'default', 'readOnly', 'writeOnly', 'deprecated', 'multipleOf', 'uniqueItems'] as const) {
+  for (const k of [
+    'pattern',
+    'format',
+    'const',
+    'title',
+    'description',
+    'default',
+    'readOnly',
+    'writeOnly',
+    'deprecated',
+    'multipleOf',
+    'uniqueItems',
+  ] as const) {
     if (b[k] !== undefined) {
       (result as any)[k] = b[k];
     }
@@ -122,7 +157,7 @@ function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
   // Enum (intersect)
   if (b.enum) {
     if (result.enum) {
-      result.enum = result.enum.filter(v => b.enum!.includes(v));
+      result.enum = result.enum.filter((v) => b.enum!.includes(v));
     } else {
       result.enum = b.enum;
     }
@@ -137,15 +172,22 @@ function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
 
   // Items
   if (b.items && typeof b.items === 'object') {
-    result.items = result.items && typeof result.items === 'object'
-      ? mergeSchemas(result.items as JSONSchema, b.items as JSONSchema)
-      : b.items;
+    result.items =
+      result.items && typeof result.items === 'object'
+        ? mergeSchemas(result.items as JSONSchema, b.items as JSONSchema)
+        : b.items;
   }
 
   // additionalProperties
   if (b.additionalProperties !== undefined) {
-    if (typeof b.additionalProperties === 'object' && typeof result.additionalProperties === 'object') {
-      result.additionalProperties = mergeSchemas(result.additionalProperties, b.additionalProperties);
+    if (
+      typeof b.additionalProperties === 'object' &&
+      typeof result.additionalProperties === 'object'
+    ) {
+      result.additionalProperties = mergeSchemas(
+        result.additionalProperties,
+        b.additionalProperties,
+      );
     } else {
       result.additionalProperties = b.additionalProperties;
     }
@@ -215,8 +257,13 @@ function evaluateConditionalsRecursive(
     result.properties = Object.fromEntries(
       Object.entries(result.properties).map(([k, v]) => [
         k,
-        evaluateConditionalsRecursive(v, getByPath(data, appendPath(dataPath, k)), appendPath(dataPath, k), deps),
-      ])
+        evaluateConditionalsRecursive(
+          v,
+          getByPath(data, appendPath(dataPath, k)),
+          appendPath(dataPath, k),
+          deps,
+        ),
+      ]),
     );
   }
 
@@ -258,11 +305,11 @@ function schemaMatches(schema: JSONSchema, data: unknown): boolean {
     return deepEqual(data, schema.const);
   }
   if (schema.enum) {
-    return schema.enum.some(v => deepEqual(data, v));
+    return schema.enum.some((v) => deepEqual(data, v));
   }
   if (schema.type) {
     const types = Array.isArray(schema.type) ? schema.type : [schema.type];
-    if (!types.some(t => matchesType(data, t))) return false;
+    if (!types.some((t) => matchesType(data, t))) return false;
   }
   if (schema.properties && typeof data === 'object' && data !== null) {
     const obj = data as Record<string, unknown>;
@@ -293,13 +340,20 @@ function schemaMatches(schema: JSONSchema, data: unknown): boolean {
 
 function matchesType(data: unknown, type: JSONSchemaType): boolean {
   switch (type) {
-    case 'string': return typeof data === 'string';
-    case 'number': return typeof data === 'number';
-    case 'integer': return typeof data === 'number' && Number.isInteger(data);
-    case 'boolean': return typeof data === 'boolean';
-    case 'array': return Array.isArray(data);
-    case 'object': return typeof data === 'object' && data !== null && !Array.isArray(data);
-    case 'null': return data === null;
+    case 'string':
+      return typeof data === 'string';
+    case 'number':
+      return typeof data === 'number';
+    case 'integer':
+      return typeof data === 'number' && Number.isInteger(data);
+    case 'boolean':
+      return typeof data === 'boolean';
+    case 'array':
+      return Array.isArray(data);
+    case 'object':
+      return typeof data === 'object' && data !== null && !Array.isArray(data);
+    case 'null':
+      return data === null;
   }
 }
 
@@ -321,7 +375,7 @@ function deepEqual(a: unknown, b: unknown): boolean {
   const keysA = Object.keys(objA);
   const keysB = Object.keys(objB);
   if (keysA.length !== keysB.length) return false;
-  return keysA.every(k => deepEqual(objA[k], objB[k]));
+  return keysA.every((k) => deepEqual(objA[k], objB[k]));
 }
 
 // ─── Stage: EVALUATE_DEPENDENTS ───
@@ -365,7 +419,7 @@ function evaluateDependentsRecursive(schema: JSONSchema, data: unknown): JSONSch
       Object.entries(result.properties).map(([k, v]) => {
         const childData = typeof data === 'object' && data !== null ? (data as any)[k] : undefined;
         return [k, evaluateDependentsRecursive(v, childData)];
-      })
+      }),
     );
   }
 
@@ -379,7 +433,12 @@ export function resolveCombinators(ctx: PipelineContext): PipelineContext {
   if (!selections || selections.size === 0) return ctx;
 
   ctx.meta.resolvedCombinators = new Map<string, CombinatorInfo>();
-  ctx.schema = resolveCombinatorRecursive(ctx.schema, '', selections, ctx.meta.resolvedCombinators as Map<string, CombinatorInfo>);
+  ctx.schema = resolveCombinatorRecursive(
+    ctx.schema,
+    '',
+    selections,
+    ctx.meta.resolvedCombinators as Map<string, CombinatorInfo>,
+  );
   return ctx;
 }
 
@@ -423,7 +482,7 @@ function resolveCombinatorRecursive(
       Object.entries(result.properties).map(([k, v]) => [
         k,
         resolveCombinatorRecursive(v, appendPath(path, k), selections, resolved),
-      ])
+      ]),
     );
   }
 
@@ -461,13 +520,21 @@ function buildFieldNode(
   if (schema.oneOf || schema.anyOf) {
     const options = (schema.oneOf ?? schema.anyOf)!;
     const combinatorType = schema.oneOf ? 'oneOf' : 'anyOf';
-    const matchResults = options.map(opt => schemaMatches(opt, data));
-    const matchingIndices = matchResults.reduce<number[]>((acc, m, i) => m ? [...acc, i] : acc, []);
+    const matchResults = options.map((opt) => schemaMatches(opt, data));
+    const matchingIndices = matchResults.reduce<number[]>(
+      (acc, m, i) => (m ? [...acc, i] : acc),
+      [],
+    );
 
     combinator = {
       type: combinatorType as 'oneOf' | 'anyOf',
       options,
-      activeIndex: matchingIndices.length === 1 ? matchingIndices[0] : matchingIndices.length > 0 ? matchingIndices[0] : null,
+      activeIndex:
+        matchingIndices.length === 1
+          ? matchingIndices[0]
+          : matchingIndices.length > 0
+            ? matchingIndices[0]
+            : null,
       labels: options.map((opt, i) => opt.title ?? `Option ${i + 1}`),
       ambiguous: matchingIndices.length > 1,
     };
@@ -487,13 +554,23 @@ function buildFieldNode(
   // Handle object properties
   const effectiveType = Array.isArray(type) ? type : [type];
   if (effectiveType.includes('object') && schema.properties && !combinator) {
-    const objData = (typeof data === 'object' && data !== null && !Array.isArray(data))
-      ? data as Record<string, unknown> : {};
+    const objData =
+      typeof data === 'object' && data !== null && !Array.isArray(data)
+        ? (data as Record<string, unknown>)
+        : {};
     const requiredSet = new Set(schema.required ?? []);
 
     for (const [key, propSchema] of Object.entries(schema.properties)) {
       const childPath = appendPath(path, key);
-      const childNode = buildFieldNode(propSchema, objData[key], childPath, 'property', requiredSet.has(key), index, meta);
+      const childNode = buildFieldNode(
+        propSchema,
+        objData[key],
+        childPath,
+        'property',
+        requiredSet.has(key),
+        index,
+        meta,
+      );
       children.push(childNode);
     }
   }
@@ -501,9 +578,10 @@ function buildFieldNode(
   // Handle array items
   if (effectiveType.includes('array') && !combinator) {
     const arrData = Array.isArray(data) ? data : [];
-    const itemSchema = (typeof schema.items === 'object' && !Array.isArray(schema.items))
-      ? schema.items as JSONSchema
-      : {};
+    const itemSchema =
+      typeof schema.items === 'object' && !Array.isArray(schema.items)
+        ? (schema.items as JSONSchema)
+        : {};
 
     arrayMeta = {
       itemSchema,
@@ -517,7 +595,15 @@ function buildFieldNode(
       const childSchema = schema.prefixItems?.[i] ?? itemSchema;
       const childPath = appendPath(path, i);
       const childOrigin: FieldOrigin = schema.prefixItems?.[i] ? 'prefixItem' : 'arrayItem';
-      const childNode = buildFieldNode(childSchema, item, childPath, childOrigin, false, index, meta);
+      const childNode = buildFieldNode(
+        childSchema,
+        item,
+        childPath,
+        childOrigin,
+        false,
+        index,
+        meta,
+      );
       children.push(childNode);
     });
   }
@@ -556,11 +642,13 @@ function resolveType(schema: JSONSchema, data: unknown): JSONSchemaType | JSONSc
   if (schema.items || schema.prefixItems) return 'array';
   if (schema.enum) {
     // Try to infer from enum values
-    const types = new Set(schema.enum.map(v => {
-      if (v === null) return 'null';
-      if (Array.isArray(v)) return 'array';
-      return typeof v as JSONSchemaType;
-    }));
+    const types = new Set(
+      schema.enum.map((v) => {
+        if (v === null) return 'null';
+        if (Array.isArray(v)) return 'array';
+        return typeof v as JSONSchemaType;
+      }),
+    );
     if (types.size === 1) return [...types][0] as JSONSchemaType;
   }
   if (schema.const !== undefined) {
@@ -582,8 +670,10 @@ function extractConstraints(schema: JSONSchema): FieldConstraints {
   const c: FieldConstraints = {};
   if (schema.minimum !== undefined) c.minimum = schema.minimum;
   if (schema.maximum !== undefined) c.maximum = schema.maximum;
-  if (schema.exclusiveMinimum !== undefined && typeof schema.exclusiveMinimum === 'number') c.exclusiveMinimum = schema.exclusiveMinimum;
-  if (schema.exclusiveMaximum !== undefined && typeof schema.exclusiveMaximum === 'number') c.exclusiveMaximum = schema.exclusiveMaximum;
+  if (schema.exclusiveMinimum !== undefined && typeof schema.exclusiveMinimum === 'number')
+    c.exclusiveMinimum = schema.exclusiveMinimum;
+  if (schema.exclusiveMaximum !== undefined && typeof schema.exclusiveMaximum === 'number')
+    c.exclusiveMaximum = schema.exclusiveMaximum;
   if (schema.multipleOf !== undefined) c.multipleOf = schema.multipleOf;
   if (schema.minLength !== undefined) c.minLength = schema.minLength;
   if (schema.maxLength !== undefined) c.maxLength = schema.maxLength;
@@ -618,8 +708,10 @@ function applyDefaultsRecursive(node: FieldNode, data: unknown): unknown {
   const effectiveType = Array.isArray(node.type) ? node.type : [node.type];
 
   if (effectiveType.includes('object') && node.children.length > 0) {
-    const obj = (typeof data === 'object' && data !== null && !Array.isArray(data))
-      ? { ...(data as Record<string, unknown>) } : {};
+    const obj =
+      typeof data === 'object' && data !== null && !Array.isArray(data)
+        ? { ...(data as Record<string, unknown>) }
+        : {};
 
     for (const child of node.children) {
       const key = child.path.split('/').pop()!;
