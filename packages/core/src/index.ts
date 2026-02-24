@@ -1,3 +1,22 @@
+// Field Props
+export type {
+  CheckboxProps,
+  FieldProps,
+  NumberInputProps,
+  SelectProps,
+  TextInputProps,
+} from './field-props.js';
+export {
+  formatToInputType,
+  getCheckboxProps,
+  getFieldProps,
+  getNumberInputProps,
+  getSelectProps,
+  getTextInputProps,
+  hasEnum,
+  hasType,
+} from './field-props.js';
+
 // Types
 
 export { coerceValue } from './knit/coerce.js';

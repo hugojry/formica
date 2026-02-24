@@ -15,6 +15,8 @@ export type {
 } from '@formica/core';
 export type { FormProviderProps } from './context.js';
 export { FormContext, FormProvider, useFormStore } from './context.js';
+export type { ComponentMap, CreateRenderersOptions } from './create-renderers.js';
+export { createRenderers } from './create-renderers.js';
 export type { FieldDispatchProps } from './dispatch/FieldDispatch.js';
 export { FieldDispatch } from './dispatch/FieldDispatch.js';
 export type { FormRendererProps } from './dispatch/FormRenderer.js';

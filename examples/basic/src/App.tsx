@@ -1,8 +1,15 @@
 import type { PipelineConfig } from '@formica/core';
 import { PipelineStage } from '@formica/core';
-import { FieldDispatch, FormProvider, RendererContext, useForm } from '@formica/react';
+import {
+  createRenderers,
+  FieldDispatch,
+  FormProvider,
+  RendererContext,
+  useForm,
+} from '@formica/react';
 import { defaultRenderers } from '@formica/theme-default';
-import { createValidationMiddleware } from '@formica/validation';
+import { createValidationMiddleware, withValidation } from '@formica/validation';
+import { Checkbox, NumberInput, Select, TextInput } from './components';
 import { userProfileSchema } from './schema';
 
 const pipelineConfig: PipelineConfig = {
@@ -10,6 +17,16 @@ const pipelineConfig: PipelineConfig = {
     [PipelineStage.FINALIZE]: [createValidationMiddleware()],
   },
 };
+
+const customRenderers = createRenderers({
+  components: { TextInput, NumberInput, Checkbox, Select },
+  mapProps: (props, node) => ({
+    ...props,
+    ...withValidation(node),
+  }),
+});
+
+const renderers = [...customRenderers, ...defaultRenderers];
 
 const initialData = {
   firstName: 'Jane',
@@ -35,7 +52,7 @@ export function App() {
     <>
       <h1>Formica — Basic Example</h1>
       <FormProvider schema={userProfileSchema} initialData={initialData} config={pipelineConfig}>
-        <RendererContext.Provider value={defaultRenderers}>
+        <RendererContext.Provider value={renderers}>
           <div className="grid">
             <div className="panel">
               <FieldDispatch path="" />

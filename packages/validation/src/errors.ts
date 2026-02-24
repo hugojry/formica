@@ -14,3 +14,7 @@ export function hasFieldErrors(node: FieldNode): boolean {
   const errors = node.extensions.errors as ValidationError[] | undefined;
   return errors != null && errors.length > 0;
 }
+
+export function withValidation(node: FieldNode): { errors: ValidationError[] } {
+  return { errors: getFieldErrors(node) };
+}
