@@ -18,7 +18,7 @@ export type { FormRendererProps } from './dispatch/FormRenderer.js';
 
 export type {
   FieldNode,
-  FormModel,
+  PipelineContext,
   FormStore,
   JSONSchema,
   PipelineConfig,

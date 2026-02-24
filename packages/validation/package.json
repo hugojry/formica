@@ -1,0 +1,16 @@
+{
+  "name": "@formica/validation",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@formica/core": "workspace:*",
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.0"
+  },
+  "scripts": {
+    "test": "bun test",
+    "build": "tsc -p tsconfig.json"
+  }
+}

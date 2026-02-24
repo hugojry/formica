@@ -21,7 +21,7 @@ describe('FormStore', () => {
   test('getModel returns initial model', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
     const model = store.getModel();
-    expect(model.root.type).toBe('object');
+    expect(model.root!.type).toBe('object');
     expect(model.index.get('/name')!.value).toBe('Alice');
   });
 

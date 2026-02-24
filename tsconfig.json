@@ -18,6 +18,7 @@
     { "path": "packages/core" },
     { "path": "packages/react" },
     { "path": "packages/theme-default" },
+    { "path": "packages/validation" },
     { "path": "examples/basic" }
   ]
 }

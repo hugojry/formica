@@ -12,11 +12,11 @@ describe('runPipeline — basic schemas', () => {
       },
     };
     const model = runPipeline(schema, { name: 'Alice' });
-    expect(model.root.type).toBe('object');
-    expect(model.root.children).toHaveLength(1);
-    expect(model.root.children[0].path).toBe('/name');
-    expect(model.root.children[0].value).toBe('Alice');
-    expect(model.root.children[0].type).toBe('string');
+    expect(model.root!.type).toBe('object');
+    expect(model.root!.children).toHaveLength(1);
+    expect(model.root!.children[0].path).toBe('/name');
+    expect(model.root!.children[0].value).toBe('Alice');
+    expect(model.root!.children[0].type).toBe('string');
   });
 
   test('multiple properties', () => {
@@ -30,7 +30,7 @@ describe('runPipeline — basic schemas', () => {
       required: ['name'],
     };
     const model = runPipeline(schema, { name: 'Bob', age: 30 });
-    expect(model.root.children).toHaveLength(3);
+    expect(model.root!.children).toHaveLength(3);
 
     const nameNode = model.index.get('/name')!;
     expect(nameNode.required).toBe(true);
@@ -96,7 +96,7 @@ describe('runPipeline — basic schemas', () => {
       maxItems: 2,
     };
     const model = runPipeline(schema, [1, 2]);
-    expect(model.root.arrayMeta!.canAdd).toBe(false);
+    expect(model.root!.arrayMeta!.canAdd).toBe(false);
   });
 
   test('enum constraints', () => {
@@ -132,9 +132,9 @@ describe('runPipeline — basic schemas', () => {
       multipleOf: 5,
     };
     const model = runPipeline(schema, 50);
-    expect(model.root.constraints.minimum).toBe(0);
-    expect(model.root.constraints.maximum).toBe(100);
-    expect(model.root.constraints.multipleOf).toBe(5);
+    expect(model.root!.constraints.minimum).toBe(0);
+    expect(model.root!.constraints.maximum).toBe(100);
+    expect(model.root!.constraints.multipleOf).toBe(5);
   });
 
   test('string constraints', () => {
@@ -146,10 +146,10 @@ describe('runPipeline — basic schemas', () => {
       format: 'email',
     };
     const model = runPipeline(schema, 'test');
-    expect(model.root.constraints.minLength).toBe(1);
-    expect(model.root.constraints.maxLength).toBe(50);
-    expect(model.root.constraints.pattern).toBe('^[a-z]+$');
-    expect(model.root.constraints.format).toBe('email');
+    expect(model.root!.constraints.minLength).toBe(1);
+    expect(model.root!.constraints.maxLength).toBe(50);
+    expect(model.root!.constraints.pattern).toBe('^[a-z]+$');
+    expect(model.root!.constraints.format).toBe('email');
   });
 });
 
@@ -332,7 +332,7 @@ describe('runPipeline — oneOf', () => {
       ],
     };
     const model = runPipeline(schema, 42);
-    expect(model.root.combinator!.activeIndex).toBe(1);
+    expect(model.root!.combinator!.activeIndex).toBe(1);
   });
 
   test('null activeIndex when no match', () => {
@@ -343,7 +343,7 @@ describe('runPipeline — oneOf', () => {
       ],
     };
     const model = runPipeline(schema, true);
-    expect(model.root.combinator!.activeIndex).toBeNull();
+    expect(model.root!.combinator!.activeIndex).toBeNull();
   });
 });
 
@@ -466,7 +466,7 @@ describe('middleware', () => {
     };
 
     const model = runPipeline({ type: 'string' }, 'test', config);
-    expect(model.root.extensions.custom).toBe(true);
+    expect(model.root!.extensions.custom).toBe(true);
   });
 
   test('middleware can skip built-in stage', () => {

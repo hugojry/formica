@@ -7,7 +7,6 @@ export type {
   FieldConstraints,
   CombinatorInfo,
   ArrayMeta,
-  FormModel,
   PipelineContext,
   Middleware,
   PipelineConfig,

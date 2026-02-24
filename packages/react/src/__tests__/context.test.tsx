@@ -25,7 +25,7 @@ describe('useFormStore', () => {
 
     const { result } = renderHook(() => useFormStore(), { wrapper });
     expect(result.current).toBeDefined();
-    expect(result.current.getModel().root.type).toBe('object');
+    expect(result.current.getModel().root!.type).toBe('object');
   });
 
   test('returns external store when provided', () => {

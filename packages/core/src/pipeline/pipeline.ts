@@ -1,4 +1,4 @@
-import type { JSONSchema, PipelineContext, PipelineConfig, Middleware, FormModel, PipelineStage, PreparedSchema } from '../types.js';
+import type { JSONSchema, PipelineContext, PipelineConfig, Middleware, PipelineStage, PreparedSchema } from '../types.js';
 import { PipelineStage as Stage } from '../types.js';
 import { createContext } from './context.js';
 import * as stages from './stages.js';
@@ -62,16 +62,6 @@ function runStages(ctx: PipelineContext, stageList: PipelineStage[], config?: Pi
   return ctx;
 }
 
-function toFormModel(ctx: PipelineContext): FormModel {
-  return {
-    root: ctx.root!,
-    schema: ctx.schema,
-    data: ctx.data,
-    index: ctx.index,
-    conditionalDeps: ctx.conditionalDeps,
-  };
-}
-
 /** Run static pipeline stages (normalize, resolve refs, merge allOf) once for a schema. */
 export function prepareSchema(schema: JSONSchema, config?: PipelineConfig): PreparedSchema {
   let ctx = createContext(schema, undefined);
@@ -83,18 +73,18 @@ export function prepareSchema(schema: JSONSchema, config?: PipelineConfig): Prep
 }
 
 /** Run the full pipeline (all stages) from a raw JSON Schema. */
-export function runPipeline(schema: JSONSchema, data: unknown, config?: PipelineConfig, meta?: Record<string, unknown>): FormModel {
+export function runPipeline(schema: JSONSchema, data: unknown, config?: PipelineConfig, meta?: Record<string, unknown>): PipelineContext {
   let ctx = createContext(schema, data);
   if (meta) Object.assign(ctx.meta, meta);
   ctx = runStages(ctx, [...STATIC_STAGES, ...DYNAMIC_STAGES], config);
-  return toFormModel(ctx);
+  return ctx;
 }
 
 /** Run only the dynamic pipeline stages from a PreparedSchema. */
-export function runPipelinePrepared(prepared: PreparedSchema, data: unknown, config?: PipelineConfig, meta?: Record<string, unknown>): FormModel {
+export function runPipelinePrepared(prepared: PreparedSchema, data: unknown, config?: PipelineConfig, meta?: Record<string, unknown>): PipelineContext {
   let ctx = createContext(prepared.schema, data);
   ctx.meta = { ...prepared.meta };
   if (meta) Object.assign(ctx.meta, meta);
   ctx = runStages(ctx, DYNAMIC_STAGES, config);
-  return toFormModel(ctx);
+  return ctx;
 }

@@ -145,16 +145,6 @@ export interface FieldNode {
   extensions: Record<string, unknown>;
 }
 
-// ─── Form Model ───
-
-export interface FormModel {
-  root: FieldNode;
-  schema: JSONSchema;
-  data: unknown;
-  index: Map<string, FieldNode>;
-  conditionalDeps: Map<string, Set<string>>;
-}
-
 // ─── Pipeline ───
 
 export enum PipelineStage {
@@ -195,10 +185,10 @@ export interface PreparedSchema {
 // ─── Store ───
 
 export type PathSubscriber = (node: FieldNode) => void;
-export type ModelSubscriber = (model: FormModel) => void;
+export type ModelSubscriber = (model: PipelineContext) => void;
 
 export interface FormStore {
-  getModel(): FormModel;
+  getModel(): PipelineContext;
   getData(): unknown;
   setData(path: string, value: unknown): void;
   setCombinatorIndex(path: string, index: number): void;

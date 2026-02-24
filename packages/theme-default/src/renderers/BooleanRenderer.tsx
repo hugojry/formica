@@ -20,6 +20,12 @@ export function BooleanRenderer({ node, onChange }: ReactRendererProps) {
     node.schema.description
       ? createElement('p', { style: { margin: '2px 0 0', fontSize: '0.85em', color: '#666' } }, node.schema.description)
       : null,
+    ...((node.extensions.errors ?? []) as Array<{ message: string }>).map((err, i) =>
+      createElement('p', {
+        key: i,
+        style: { margin: '2px 0 0', fontSize: '0.85em', color: '#d32f2f' },
+      }, err.message),
+    ),
   );
 }
 

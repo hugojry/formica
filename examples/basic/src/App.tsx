@@ -1,6 +1,15 @@
+import { PipelineStage } from '@formica/core';
+import type { PipelineConfig } from '@formica/core';
 import { FormProvider, FieldDispatch, RendererContext, useForm } from '@formica/react';
 import { defaultRenderers } from '@formica/theme-default';
+import { createValidationMiddleware } from '@formica/validation';
 import { userProfileSchema } from './schema';
+
+const pipelineConfig: PipelineConfig = {
+  middleware: {
+    [PipelineStage.FINALIZE]: [createValidationMiddleware()],
+  },
+};
 
 const initialData = {
   firstName: 'Jane',
@@ -25,7 +34,7 @@ export function App() {
   return (
     <>
       <h1>Formica — Basic Example</h1>
-      <FormProvider schema={userProfileSchema} initialData={initialData}>
+      <FormProvider schema={userProfileSchema} initialData={initialData} config={pipelineConfig}>
         <RendererContext.Provider value={defaultRenderers}>
           <div className="grid">
             <div className="panel">

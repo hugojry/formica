@@ -74,11 +74,11 @@ describe('RESOLVE_COMBINATORS stage', () => {
     const selections = new Map<string, number>([['', 1]]);
     const model = runPipeline(objectOneOfSchema, {}, undefined, { combinatorSelections: selections });
 
-    expect(model.root.combinator).toBeDefined();
-    expect(model.root.combinator!.activeIndex).toBe(1);
-    expect(model.root.combinator!.type).toBe('oneOf');
-    expect(model.root.combinator!.labels).toEqual(['Person', 'Company']);
-    expect(model.root.combinator!.ambiguous).toBe(false);
+    expect(model.root!.combinator).toBeDefined();
+    expect(model.root!.combinator!.activeIndex).toBe(1);
+    expect(model.root!.combinator!.type).toBe('oneOf');
+    expect(model.root!.combinator!.labels).toEqual(['Person', 'Company']);
+    expect(model.root!.combinator!.ambiguous).toBe(false);
   });
 
   test('resolved oneOf builds children from selected branch', () => {
@@ -97,7 +97,7 @@ describe('RESOLVE_COMBINATORS stage', () => {
     const selections = new Map<string, number>([['', 0]]);
     const model = runPipeline(objectOneOfSchema, {}, undefined, { combinatorSelections: selections });
 
-    expect(model.root.combinator!.activeIndex).toBe(0);
+    expect(model.root!.combinator!.activeIndex).toBe(0);
     expect(model.index.has('/kind')).toBe(true);
     expect(model.index.has('/name')).toBe(true);
     expect(model.index.has('/companyName')).toBe(false);
@@ -120,9 +120,9 @@ describe('RESOLVE_COMBINATORS stage', () => {
     const selections = new Map<string, number>([['', 1]]);
     const model = runPipeline(anyOfSchema, {}, undefined, { combinatorSelections: selections });
 
-    expect(model.root.combinator).toBeDefined();
-    expect(model.root.combinator!.type).toBe('anyOf');
-    expect(model.root.combinator!.activeIndex).toBe(1);
+    expect(model.root!.combinator).toBeDefined();
+    expect(model.root!.combinator!.type).toBe('anyOf');
+    expect(model.root!.combinator!.activeIndex).toBe(1);
     expect(model.index.has('/name')).toBe(true);
   });
 
@@ -130,8 +130,8 @@ describe('RESOLVE_COMBINATORS stage', () => {
     const model = runPipeline(objectOneOfSchema, { kind: 'person', name: 'Alice' });
 
     // Falls back to schemaMatches in BUILD_TREE
-    expect(model.root.combinator).toBeDefined();
-    expect(model.root.combinator!.activeIndex).toBe(0);
+    expect(model.root!.combinator).toBeDefined();
+    expect(model.root!.combinator!.activeIndex).toBe(0);
   });
 
   test('ignores out-of-bounds selection index', () => {
@@ -139,8 +139,8 @@ describe('RESOLVE_COMBINATORS stage', () => {
     const model = runPipeline(objectOneOfSchema, {}, undefined, { combinatorSelections: selections });
 
     // Out of bounds — not resolved by RESOLVE_COMBINATORS, falls through to BUILD_TREE
-    expect(model.root.combinator).toBeDefined();
-    expect(model.root.combinator!.activeIndex).toBeNull();
+    expect(model.root!.combinator).toBeDefined();
+    expect(model.root!.combinator!.activeIndex).toBeNull();
   });
 
   test('selection works even when data does not match the variant', () => {
@@ -149,7 +149,7 @@ describe('RESOLVE_COMBINATORS stage', () => {
     const model = runPipeline(objectOneOfSchema, { kind: 'person', name: 'Alice' }, undefined, { combinatorSelections: selections });
 
     // Even though data matches Person, explicit selection overrides to Company
-    expect(model.root.combinator!.activeIndex).toBe(1);
+    expect(model.root!.combinator!.activeIndex).toBe(1);
     expect(model.index.has('/companyName')).toBe(true);
   });
 });
@@ -162,7 +162,7 @@ describe('FormStore.setCombinatorIndex', () => {
 
     store.setCombinatorIndex('', 0);
     const model = store.getModel();
-    expect(model.root.combinator!.activeIndex).toBe(0);
+    expect(model.root!.combinator!.activeIndex).toBe(0);
     expect(model.index.has('/kind')).toBe(true);
     expect(model.index.has('/name')).toBe(true);
   });
@@ -213,11 +213,11 @@ describe('FormStore.setCombinatorIndex', () => {
 
     // Select Company variant
     store.setCombinatorIndex('', 1);
-    expect(store.getModel().root.combinator!.activeIndex).toBe(1);
+    expect(store.getModel().root!.combinator!.activeIndex).toBe(1);
 
     // Update data — selection should stick
     store.setData('/companyName', 'Acme');
-    expect(store.getModel().root.combinator!.activeIndex).toBe(1);
+    expect(store.getModel().root!.combinator!.activeIndex).toBe(1);
     expect(store.getModel().index.get('/companyName')!.value).toBe('Acme');
   });
 
@@ -230,7 +230,7 @@ describe('FormStore.setCombinatorIndex', () => {
     store.setData('', { kind: 'company' });
 
     const model = store.getModel();
-    expect(model.root.combinator!.activeIndex).toBe(1);
+    expect(model.root!.combinator!.activeIndex).toBe(1);
     expect(model.index.get('/kind')!.value).toBe('company');
     expect(model.index.has('/companyName')).toBe(true);
   });

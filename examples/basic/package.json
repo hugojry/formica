@@ -12,6 +12,7 @@
     "@formica/core": "workspace:*",
     "@formica/react": "workspace:*",
     "@formica/theme-default": "workspace:*",
+    "@formica/validation": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

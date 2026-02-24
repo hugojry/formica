@@ -31,6 +31,12 @@ export function EnumRenderer({ node, onChange }: ReactRendererProps) {
         createElement('option', { key: String(opt), value: String(opt) }, String(opt)),
       ),
     ),
+    ...((node.extensions.errors ?? []) as Array<{ message: string }>).map((err, i) =>
+      createElement('p', {
+        key: i,
+        style: { margin: '2px 0 0', fontSize: '0.85em', color: '#d32f2f' },
+      }, err.message),
+    ),
   );
 }
 

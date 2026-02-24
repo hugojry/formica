@@ -1,4 +1,4 @@
-import type { FormStore, FormModel, JSONSchema, PipelineConfig, PathSubscriber, ModelSubscriber, FieldNode } from '../types.js';
+import type { FormStore, PipelineContext, JSONSchema, PipelineConfig, PathSubscriber, ModelSubscriber, FieldNode } from '../types.js';
 import { runPipeline, runPipelinePrepared, prepareSchema } from '../pipeline/pipeline.js';
 import { getByPath, setByPath } from '../model/path.js';
 import { computeDirtyPaths, isPathAffected } from './differ.js';
@@ -26,7 +26,7 @@ export function createFormStore(
   const modelListeners = new Set<ModelSubscriber>();
   const pathListeners = new Map<string, Set<PathSubscriber>>();
 
-  function getModel(): FormModel {
+  function getModel(): PipelineContext {
     return model;
   }
 

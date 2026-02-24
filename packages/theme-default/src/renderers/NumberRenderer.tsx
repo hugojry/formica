@@ -27,6 +27,12 @@ export function NumberRenderer({ node, onChange }: ReactRendererProps) {
       step: node.constraints.multipleOf ?? (hasType(node, 'integer') ? 1 : undefined),
       style: { width: '100%', padding: '4px 8px', boxSizing: 'border-box' as const },
     }),
+    ...((node.extensions.errors ?? []) as Array<{ message: string }>).map((err, i) =>
+      createElement('p', {
+        key: i,
+        style: { margin: '2px 0 0', fontSize: '0.85em', color: '#d32f2f' },
+      }, err.message),
+    ),
   );
 }
 

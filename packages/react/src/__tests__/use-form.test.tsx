@@ -24,7 +24,7 @@ describe('useForm', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
     const { result } = renderHook(() => useForm(), { wrapper: createWrapper(store) });
 
-    expect(result.current.model.root.type).toBe('object');
+    expect(result.current.model.root!.type).toBe('object');
     expect(result.current.model.index.get('/name')?.value).toBe('Alice');
   });
 

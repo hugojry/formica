@@ -7,10 +7,12 @@ export const userProfileSchema: JSONSchema = {
     firstName: {
       type: 'string',
       title: 'First Name',
+      minLength: 1,
     },
     lastName: {
       type: 'string',
       title: 'Last Name',
+      minLength: 1,
     },
     email: {
       type: 'string',
