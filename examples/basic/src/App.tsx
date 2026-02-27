@@ -1,14 +1,21 @@
-import type { PipelineConfig } from '@formica/core';
-import { PipelineStage } from '@formica/core';
+import type { FieldNode, PipelineConfig } from '@formica/core';
 import {
-  createRenderers,
+  composeDispatch,
+  composePropEnhancers,
+  extractPropEnhancers,
+  hasEnum,
+  hasType,
+  PipelineStage,
+} from '@formica/core';
+import {
+  DispatchContext,
   FieldDispatch,
   FormProvider,
-  RendererContext,
+  PropEnhancerContext,
   useForm,
 } from '@formica/react';
-import { defaultRenderers } from '@formica/theme-default';
-import { createValidationMiddleware, withValidation } from '@formica/validation';
+import { defaultDispatch } from '@formica/theme-default';
+import { createValidationMiddleware } from '@formica/validation';
 import { Checkbox, NumberInput, Select, TextInput } from './components';
 import { userProfileSchema } from './schema';
 
@@ -18,15 +25,15 @@ const pipelineConfig: PipelineConfig = {
   },
 };
 
-const customRenderers = createRenderers({
-  components: { TextInput, NumberInput, Checkbox, Select },
-  mapProps: (props, node) => ({
-    ...props,
-    ...withValidation(node),
-  }),
-});
+const customDispatch = (node: FieldNode) => {
+  if (hasEnum(node)) return Select;
+  if (hasType(node, 'string')) return TextInput;
+  if (hasType(node, 'number') || hasType(node, 'integer')) return NumberInput;
+  if (hasType(node, 'boolean')) return Checkbox;
+  return null;
+};
 
-const renderers = [...customRenderers, ...defaultRenderers];
+const dispatch = composeDispatch(customDispatch, defaultDispatch);
 
 const initialData = {
   firstName: 'Jane',
@@ -47,21 +54,25 @@ function DataPreview() {
   );
 }
 
+const enhancer = composePropEnhancers(extractPropEnhancers(pipelineConfig));
+
 export function App() {
   return (
     <>
       <h1>Formica — Basic Example</h1>
       <FormProvider schema={userProfileSchema} initialData={initialData} config={pipelineConfig}>
-        <RendererContext.Provider value={renderers}>
-          <div className="grid">
-            <div className="panel">
-              <FieldDispatch path="" />
+        <DispatchContext.Provider value={dispatch}>
+          <PropEnhancerContext.Provider value={enhancer}>
+            <div className="grid">
+              <div className="panel">
+                <FieldDispatch path="" />
+              </div>
+              <div className="panel">
+                <DataPreview />
+              </div>
             </div>
-            <div className="panel">
-              <DataPreview />
-            </div>
-          </div>
-        </RendererContext.Provider>
+          </PropEnhancerContext.Provider>
+        </DispatchContext.Provider>
       </FormProvider>
     </>
   );

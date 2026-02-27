@@ -5,6 +5,7 @@ export {
   booleanTester,
   CombinatorRenderer,
   combinatorTester,
+  defaultDispatch,
   defaultRenderers,
   EnumRenderer,
   enumTester,

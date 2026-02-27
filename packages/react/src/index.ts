@@ -22,12 +22,20 @@ export { FieldDispatch } from './dispatch/FieldDispatch.js';
 export type { FormRendererProps } from './dispatch/FormRenderer.js';
 export { FormRenderer } from './dispatch/FormRenderer.js';
 export type {
+  ReactDispatchFn,
   ReactRendererEntry,
   ReactRendererProps,
 } from './dispatch/renderer-context.js';
 
 // Dispatch
-export { RendererContext, useRenderers } from './dispatch/renderer-context.js';
+export {
+  DispatchContext,
+  PropEnhancerContext,
+  RendererContext,
+  useDispatch,
+  usePropEnhancer,
+  useRenderers,
+} from './dispatch/renderer-context.js';
 export { resolveRenderer } from './dispatch/resolve-renderer.js';
 export type { UseFieldReturn } from './hooks/use-field.js';
 export { useField } from './hooks/use-field.js';

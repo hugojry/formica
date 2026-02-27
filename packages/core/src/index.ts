@@ -1,3 +1,6 @@
+// Dispatch
+export { composeDispatch } from './compose-dispatch.js';
+
 // Field Props
 export type {
   CheckboxProps,
@@ -38,6 +41,11 @@ export {
 
 // Pipeline
 export {
+  composePropEnhancers,
+  extractMiddleware,
+  extractPropEnhancers,
+} from './pipeline/middleware-utils.js';
+export {
   prepareSchema,
   runPipeline,
   runPipelinePrepared,
@@ -52,6 +60,7 @@ export { traverseSchema } from './schema/traverse.js';
 export type {
   ArrayMeta,
   CombinatorInfo,
+  DispatchFn,
   FieldConstraints,
   FieldNode,
   FieldOrigin,
@@ -59,11 +68,14 @@ export type {
   JSONSchema,
   JSONSchemaType,
   Middleware,
+  MiddlewareDescriptor,
+  MiddlewareEntry,
   ModelSubscriber,
   PathSubscriber,
   PipelineConfig,
   PipelineContext,
   PreparedSchema,
+  PropEnhancer,
   RendererEntry,
   RendererProps,
 } from './types.js';

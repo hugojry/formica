@@ -1,10 +1,11 @@
-import type { JSONSchema, Middleware } from '@formica/core';
+import type { JSONSchema, Middleware, MiddlewareDescriptor } from '@formica/core';
 import type { ValidateFunction } from 'ajv';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import type { ValidationError } from './errors.js';
+import { withValidation } from './errors.js';
 
-export function createValidationMiddleware(): Middleware {
+export function createValidationMiddleware(): MiddlewareDescriptor {
   const ajv = new Ajv({ allErrors: true });
   addFormats(ajv);
   const cache = new WeakMap<JSONSchema, ValidateFunction>();
@@ -18,7 +19,7 @@ export function createValidationMiddleware(): Middleware {
     return validate;
   }
 
-  return (_ctx, next) => {
+  const middleware: Middleware = (_ctx, next) => {
     const result = next();
 
     const allErrors = new Map<string, ValidationError[]>();
@@ -43,4 +44,6 @@ export function createValidationMiddleware(): Middleware {
     result.meta.validationErrors = allErrors;
     return result;
   };
+
+  return { middleware, propEnhancer: withValidation };
 }

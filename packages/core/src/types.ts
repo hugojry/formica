@@ -179,7 +179,7 @@ export interface PipelineContext {
 export type Middleware = (ctx: PipelineContext, next: () => PipelineContext) => PipelineContext;
 
 export interface PipelineConfig {
-  middleware?: Partial<Record<PipelineStage, Middleware[]>>;
+  middleware?: Partial<Record<PipelineStage, MiddlewareEntry[]>>;
   /** Cache the result of static pipeline stages (normalize, resolve refs, merge allOf). Defaults to true. */
   cacheStaticStages?: boolean;
 }
@@ -218,3 +218,18 @@ export interface RendererEntry<Component = unknown> {
   tester: (node: FieldNode) => number;
   renderer: Component;
 }
+
+// ─── Dispatch ───
+
+export type DispatchFn<Component = unknown> = (node: FieldNode) => Component | null;
+
+// ─── Prop Enhancers ───
+
+export type PropEnhancer = (node: FieldNode) => Record<string, unknown>;
+
+export interface MiddlewareDescriptor {
+  middleware: Middleware;
+  propEnhancer?: PropEnhancer;
+}
+
+export type MiddlewareEntry = Middleware | MiddlewareDescriptor;

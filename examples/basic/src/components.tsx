@@ -1,3 +1,11 @@
+import {
+  getCheckboxProps,
+  getFieldProps,
+  getNumberInputProps,
+  getSelectProps,
+  getTextInputProps,
+} from '@formica/core';
+import type { ReactRendererProps } from '@formica/react';
 import type { ValidationError } from '@formica/validation';
 
 interface ErrorListProps {
@@ -43,134 +51,118 @@ function FieldWrapper({ label, required, description, children, errors }: FieldW
 
 // ─── Leaf Components ───
 
-export function TextInput(props: {
-  label: string;
-  required: boolean;
-  description?: string;
-  type: string;
-  value: string;
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  readOnly: boolean;
-  onChange: (value: string) => void;
-  errors?: ValidationError[];
-}) {
+export function TextInput({
+  node,
+  onChange,
+  errors,
+}: ReactRendererProps & { errors?: ValidationError[] }) {
+  const field = getFieldProps(node);
+  const input = getTextInputProps(node);
   return (
     <FieldWrapper
-      label={props.label}
-      required={props.required}
-      description={props.description}
-      errors={props.errors}
+      label={field.label}
+      required={field.required}
+      description={field.description}
+      errors={errors}
     >
       <input
-        type={props.type}
-        value={props.value}
-        onChange={(e) => props.onChange(e.target.value)}
-        readOnly={props.readOnly}
-        minLength={props.minLength}
-        maxLength={props.maxLength}
-        pattern={props.pattern}
+        type={input.type}
+        value={input.value}
+        onChange={(e) => onChange(e.target.value)}
+        readOnly={field.readOnly}
+        minLength={input.minLength}
+        maxLength={input.maxLength}
+        pattern={input.pattern}
         style={{ width: '100%', padding: '4px 8px', boxSizing: 'border-box' }}
       />
     </FieldWrapper>
   );
 }
 
-export function NumberInput(props: {
-  label: string;
-  required: boolean;
-  description?: string;
-  value: number | undefined;
-  min?: number;
-  max?: number;
-  step?: number;
-  readOnly: boolean;
-  onChange: (value: number | undefined) => void;
-  errors?: ValidationError[];
-}) {
+export function NumberInput({
+  node,
+  onChange,
+  errors,
+}: ReactRendererProps & { errors?: ValidationError[] }) {
+  const field = getFieldProps(node);
+  const input = getNumberInputProps(node);
   return (
     <FieldWrapper
-      label={props.label}
-      required={props.required}
-      description={props.description}
-      errors={props.errors}
+      label={field.label}
+      required={field.required}
+      description={field.description}
+      errors={errors}
     >
       <input
         type="number"
-        value={props.value != null ? String(props.value) : ''}
+        value={input.value != null ? String(input.value) : ''}
         onChange={(e) => {
           const v = e.target.value;
-          props.onChange(v === '' ? undefined : Number(v));
+          onChange(v === '' ? undefined : Number(v));
         }}
-        readOnly={props.readOnly}
-        min={props.min}
-        max={props.max}
-        step={props.step}
+        readOnly={field.readOnly}
+        min={input.min}
+        max={input.max}
+        step={input.step}
         style={{ width: '100%', padding: '4px 8px', boxSizing: 'border-box' }}
       />
     </FieldWrapper>
   );
 }
 
-export function Checkbox(props: {
-  label: string;
-  required: boolean;
-  description?: string;
-  checked: boolean;
-  readOnly: boolean;
-  onChange: (checked: boolean) => void;
-  errors?: ValidationError[];
-}) {
+export function Checkbox({
+  node,
+  onChange,
+  errors,
+}: ReactRendererProps & { errors?: ValidationError[] }) {
+  const field = getFieldProps(node);
+  const input = getCheckboxProps(node);
   return (
     <div style={{ marginBottom: 8 }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
         <input
           type="checkbox"
-          checked={props.checked}
-          onChange={(e) => props.onChange(e.target.checked)}
-          readOnly={props.readOnly}
+          checked={input.checked}
+          onChange={(e) => onChange(e.target.checked)}
+          readOnly={field.readOnly}
         />
-        {props.label}
-        {props.required ? <span style={{ color: 'red' }}> *</span> : null}
+        {field.label}
+        {field.required ? <span style={{ color: 'red' }}> *</span> : null}
       </label>
-      {props.description ? (
-        <p style={{ margin: '2px 0 0', fontSize: '0.85em', color: '#666' }}>{props.description}</p>
+      {field.description ? (
+        <p style={{ margin: '2px 0 0', fontSize: '0.85em', color: '#666' }}>{field.description}</p>
       ) : null}
-      <ErrorList errors={props.errors} />
+      <ErrorList errors={errors} />
     </div>
   );
 }
 
-export function Select(props: {
-  label: string;
-  required: boolean;
-  description?: string;
-  value: unknown;
-  options: { label: string; value: unknown }[];
-  readOnly: boolean;
-  onChange: (value: unknown) => void;
-  errors?: ValidationError[];
-}) {
+export function Select({
+  node,
+  onChange,
+  errors,
+}: ReactRendererProps & { errors?: ValidationError[] }) {
+  const field = getFieldProps(node);
+  const input = getSelectProps(node);
   return (
     <FieldWrapper
-      label={props.label}
-      required={props.required}
-      description={props.description}
-      errors={props.errors}
+      label={field.label}
+      required={field.required}
+      description={field.description}
+      errors={errors}
     >
       <select
-        value={props.value != null ? String(props.value) : ''}
+        value={input.value != null ? String(input.value) : ''}
         onChange={(e) => {
           const v = e.target.value;
-          const match = props.options.find((o) => String(o.value) === v);
-          props.onChange(match !== undefined ? match.value : v);
+          const match = input.options.find((o) => String(o.value) === v);
+          onChange(match !== undefined ? match.value : v);
         }}
-        disabled={props.readOnly}
+        disabled={field.readOnly}
         style={{ width: '100%', padding: '4px 8px', boxSizing: 'border-box' }}
       >
         <option value="">— Select —</option>
-        {props.options.map((opt) => (
+        {input.options.map((opt) => (
           <option key={String(opt.value)} value={String(opt.value)}>
             {opt.label}
           </option>
