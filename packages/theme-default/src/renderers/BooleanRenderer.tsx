@@ -1,5 +1,6 @@
 import type { FieldNode } from '@formica/core';
 import type { ReactRendererProps } from '@formica/react';
+import { getFieldErrors } from '@formica/validation';
 import { createElement } from 'react';
 import { hasType } from './tester-utils.js';
 
@@ -35,7 +36,7 @@ export function BooleanRenderer({ node, onChange }: ReactRendererProps) {
           node.schema.description,
         )
       : null,
-    ...((node.extensions.errors ?? []) as Array<{ message: string }>).map((err, i) =>
+    ...getFieldErrors(node).map((err, i) =>
       createElement(
         'p',
         {

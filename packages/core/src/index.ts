@@ -41,11 +41,6 @@ export {
 
 // Pipeline
 export {
-  composePropEnhancers,
-  extractMiddleware,
-  extractPropEnhancers,
-} from './pipeline/middleware-utils.js';
-export {
   prepareSchema,
   runPipeline,
   runPipelinePrepared,
@@ -68,14 +63,11 @@ export type {
   JSONSchema,
   JSONSchemaType,
   Middleware,
-  MiddlewareDescriptor,
-  MiddlewareEntry,
   ModelSubscriber,
   PathSubscriber,
   PipelineConfig,
   PipelineContext,
   PreparedSchema,
-  PropEnhancer,
   RendererProps,
 } from './types.js';
 export { PipelineStage } from './types.js';

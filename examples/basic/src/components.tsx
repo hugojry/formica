@@ -7,6 +7,7 @@ import {
 } from '@formica/core';
 import type { ReactRendererProps } from '@formica/react';
 import type { ValidationError } from '@formica/validation';
+import { getFieldErrors } from '@formica/validation';
 
 interface ErrorListProps {
   errors?: ValidationError[];
@@ -51,13 +52,10 @@ function FieldWrapper({ label, required, description, children, errors }: FieldW
 
 // ─── Leaf Components ───
 
-export function TextInput({
-  node,
-  onChange,
-  errors,
-}: ReactRendererProps & { errors?: ValidationError[] }) {
+export function TextInput({ node, onChange }: ReactRendererProps) {
   const field = getFieldProps(node);
   const input = getTextInputProps(node);
+  const errors = getFieldErrors(node);
   return (
     <FieldWrapper
       label={field.label}
@@ -79,13 +77,10 @@ export function TextInput({
   );
 }
 
-export function NumberInput({
-  node,
-  onChange,
-  errors,
-}: ReactRendererProps & { errors?: ValidationError[] }) {
+export function NumberInput({ node, onChange }: ReactRendererProps) {
   const field = getFieldProps(node);
   const input = getNumberInputProps(node);
+  const errors = getFieldErrors(node);
   return (
     <FieldWrapper
       label={field.label}
@@ -110,13 +105,10 @@ export function NumberInput({
   );
 }
 
-export function Checkbox({
-  node,
-  onChange,
-  errors,
-}: ReactRendererProps & { errors?: ValidationError[] }) {
+export function Checkbox({ node, onChange }: ReactRendererProps) {
   const field = getFieldProps(node);
   const input = getCheckboxProps(node);
+  const errors = getFieldErrors(node);
   return (
     <div style={{ marginBottom: 8 }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
@@ -137,13 +129,10 @@ export function Checkbox({
   );
 }
 
-export function Select({
-  node,
-  onChange,
-  errors,
-}: ReactRendererProps & { errors?: ValidationError[] }) {
+export function Select({ node, onChange }: ReactRendererProps) {
   const field = getFieldProps(node);
   const input = getSelectProps(node);
+  const errors = getFieldErrors(node);
   return (
     <FieldWrapper
       label={field.label}

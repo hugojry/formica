@@ -18,7 +18,6 @@ export function createFieldNode(
     active: true,
     constraints: {},
     origin: 'property',
-    extensions: {},
     ...overrides,
   };
 }

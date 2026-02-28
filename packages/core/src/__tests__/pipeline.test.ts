@@ -446,9 +446,9 @@ describe('middleware', () => {
   test('middleware can modify context', () => {
     const middleware: Middleware = (_ctx, next) => {
       const result = next();
-      // Add extension to all nodes
+      // Add property directly to all nodes
       for (const [, node] of result.index) {
-        node.extensions.custom = true;
+        node.validationErrors = [];
       }
       return result;
     };
@@ -460,7 +460,7 @@ describe('middleware', () => {
     };
 
     const model = runPipeline({ type: 'string' }, 'test', config);
-    expect(model.root!.extensions.custom).toBe(true);
+    expect(model.root!.validationErrors).toEqual([]);
   });
 
   test('middleware can skip built-in stage', () => {

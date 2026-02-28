@@ -1,19 +1,6 @@
 import type { FieldNode, PipelineConfig } from '@formica/core';
-import {
-  composeDispatch,
-  composePropEnhancers,
-  extractPropEnhancers,
-  hasEnum,
-  hasType,
-  PipelineStage,
-} from '@formica/core';
-import {
-  DispatchContext,
-  FieldDispatch,
-  FormProvider,
-  PropEnhancerContext,
-  useForm,
-} from '@formica/react';
+import { composeDispatch, hasEnum, hasType, PipelineStage } from '@formica/core';
+import { DispatchContext, FieldDispatch, FormProvider, useForm } from '@formica/react';
 import { defaultDispatch } from '@formica/theme-default';
 import { createValidationMiddleware } from '@formica/validation';
 import { Checkbox, NumberInput, Select, TextInput } from './components';
@@ -55,24 +42,20 @@ function DataPreview() {
   );
 }
 
-const enhancer = composePropEnhancers(extractPropEnhancers(pipelineConfig));
-
 export function App() {
   return (
     <>
       <h1>Formica — Basic Example</h1>
       <FormProvider schema={userProfileSchema} initialData={initialData} config={pipelineConfig}>
         <DispatchContext.Provider value={dispatch}>
-          <PropEnhancerContext.Provider value={enhancer}>
-            <div className="grid">
-              <div className="panel">
-                <FieldDispatch path="" />
-              </div>
-              <div className="panel">
-                <DataPreview />
-              </div>
+          <div className="grid">
+            <div className="panel">
+              <FieldDispatch path="" />
             </div>
-          </PropEnhancerContext.Provider>
+            <div className="panel">
+              <DataPreview />
+            </div>
+          </div>
         </DispatchContext.Provider>
       </FormProvider>
     </>

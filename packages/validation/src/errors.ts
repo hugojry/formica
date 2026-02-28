@@ -7,14 +7,10 @@ export interface ValidationError {
 }
 
 export function getFieldErrors(node: FieldNode): ValidationError[] {
-  return (node.extensions.errors as ValidationError[] | undefined) ?? [];
+  return (node.validationErrors as ValidationError[] | undefined) ?? [];
 }
 
 export function hasFieldErrors(node: FieldNode): boolean {
-  const errors = node.extensions.errors as ValidationError[] | undefined;
+  const errors = node.validationErrors as ValidationError[] | undefined;
   return errors != null && errors.length > 0;
-}
-
-export function withValidation(node: FieldNode): { errors: ValidationError[] } {
-  return { errors: getFieldErrors(node) };
 }

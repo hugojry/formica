@@ -1,5 +1,6 @@
 import type { FieldNode } from '@formica/core';
 import type { ReactRendererProps } from '@formica/react';
+import { getFieldErrors } from '@formica/validation';
 import { createElement } from 'react';
 import { hasEnum } from './tester-utils.js';
 
@@ -45,7 +46,7 @@ export function EnumRenderer({ node, onChange }: ReactRendererProps) {
         createElement('option', { key: String(opt), value: String(opt) }, String(opt)),
       ),
     ),
-    ...((node.extensions.errors ?? []) as Array<{ message: string }>).map((err, i) =>
+    ...getFieldErrors(node).map((err, i) =>
       createElement(
         'p',
         {

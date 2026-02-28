@@ -1,5 +1,6 @@
 import type { FieldNode } from '@formica/core';
 import type { ReactRendererProps } from '@formica/react';
+import { getFieldErrors } from '@formica/validation';
 import { createElement } from 'react';
 import { hasEnum, hasType } from './tester-utils.js';
 
@@ -39,7 +40,7 @@ export function NumberRenderer({ node, onChange }: ReactRendererProps) {
         boxSizing: 'border-box' as const,
       },
     }),
-    ...((node.extensions.errors ?? []) as Array<{ message: string }>).map((err, i) =>
+    ...getFieldErrors(node).map((err, i) =>
       createElement(
         'p',
         {

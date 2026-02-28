@@ -24,9 +24,7 @@ export type {
 } from './dispatch/renderer-context.js';
 export {
   DispatchContext,
-  PropEnhancerContext,
   useDispatch,
-  usePropEnhancer,
 } from './dispatch/renderer-context.js';
 export type { UseFieldReturn } from './hooks/use-field.js';
 export { useField } from './hooks/use-field.js';

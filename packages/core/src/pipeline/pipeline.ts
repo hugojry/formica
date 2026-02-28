@@ -8,7 +8,6 @@ import type {
 } from '../types.js';
 import { PipelineStage as Stage } from '../types.js';
 import { createContext } from './context.js';
-import { extractMiddleware } from './middleware-utils.js';
 import * as stages from './stages.js';
 
 const STATIC_STAGES: PipelineStage[] = [Stage.NORMALIZE, Stage.RESOLVE_REFS, Stage.MERGE_ALL_OF];
@@ -64,7 +63,7 @@ function runStages(
   for (const stage of stageList) {
     ctx.stage = stage;
     const entries = config?.middleware?.[stage] ?? [];
-    const middlewares = entries.map(extractMiddleware);
+    const middlewares = entries;
     const run = composeMiddleware(BUILT_IN[stage], middlewares);
     ctx = run(ctx);
   }

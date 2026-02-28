@@ -628,7 +628,6 @@ function buildFieldNode(
     combinator,
     origin,
     arrayMeta,
-    extensions: {},
   };
 
   index.set(path, node);

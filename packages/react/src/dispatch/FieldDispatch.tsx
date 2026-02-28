@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { createElement } from 'react';
 import { useField } from '../hooks/use-field.js';
-import { useDispatch, usePropEnhancer } from './renderer-context.js';
+import { useDispatch } from './renderer-context.js';
 
 export interface FieldDispatchProps {
   path: string;
@@ -10,7 +10,6 @@ export interface FieldDispatchProps {
 export function FieldDispatch({ path }: FieldDispatchProps) {
   const { node, onChange, setCombinatorIndex } = useField(path);
   const dispatch = useDispatch();
-  const enhance = usePropEnhancer();
 
   if (!node || !node.active) return null;
 
@@ -20,13 +19,10 @@ export function FieldDispatch({ path }: FieldDispatchProps) {
   const renderChild = (childPath: string): ReactNode =>
     createElement(FieldDispatch, { key: childPath, path: childPath });
 
-  const enhanced = enhance ? enhance(node) : {};
-
   return createElement(Renderer, {
     node,
     onChange,
     setCombinatorIndex,
     renderChild,
-    ...enhanced,
   });
 }
