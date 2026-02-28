@@ -76,7 +76,6 @@ export type {
   PipelineContext,
   PreparedSchema,
   PropEnhancer,
-  RendererEntry,
   RendererProps,
 } from './types.js';
 export { PipelineStage } from './types.js';

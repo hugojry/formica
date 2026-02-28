@@ -4,49 +4,32 @@ import type { ReactNode } from 'react';
 import { createElement, useMemo } from 'react';
 import { FormProvider } from '../context.js';
 import { FieldDispatch } from './FieldDispatch.js';
-import type { ReactDispatchFn, ReactRendererEntry } from './renderer-context.js';
-import { DispatchContext, PropEnhancerContext, RendererContext } from './renderer-context.js';
+import type { ReactDispatchFn } from './renderer-context.js';
+import { DispatchContext, PropEnhancerContext } from './renderer-context.js';
 
-type InternalBaseProps = {
+type InternalProps = {
   schema: JSONSchema;
   initialData?: unknown;
+  dispatch: ReactDispatchFn;
   config?: PipelineConfig;
   children?: ReactNode;
 };
 
-type ExternalBaseProps = {
+type ExternalProps = {
   store: FormStore;
+  dispatch: ReactDispatchFn;
+  config?: PipelineConfig;
   children?: ReactNode;
 };
 
-type WithDispatch = { dispatch: ReactDispatchFn; config?: PipelineConfig };
-type WithRenderers = { renderers: ReactRendererEntry[] };
+export type FormRendererProps = InternalProps | ExternalProps;
 
-type InternalDispatchProps = InternalBaseProps & WithDispatch;
-type InternalRendererProps = InternalBaseProps & WithRenderers;
-type ExternalDispatchProps = ExternalBaseProps & WithDispatch;
-type ExternalRendererProps = ExternalBaseProps & WithRenderers;
-
-export type FormRendererProps =
-  | InternalDispatchProps
-  | InternalRendererProps
-  | ExternalDispatchProps
-  | ExternalRendererProps;
-
-function isExternalProps(
-  props: FormRendererProps,
-): props is ExternalDispatchProps | ExternalRendererProps {
+function isExternalProps(props: FormRendererProps): props is ExternalProps {
   return 'store' in props;
 }
 
-function isDispatchProps(
-  props: FormRendererProps,
-): props is InternalDispatchProps | ExternalDispatchProps {
-  return 'dispatch' in props;
-}
-
 export function FormRenderer(props: FormRendererProps) {
-  const { children } = props;
+  const { dispatch, config, children } = props;
 
   const providerProps = isExternalProps(props)
     ? { store: props.store }
@@ -56,39 +39,6 @@ export function FormRenderer(props: FormRendererProps) {
         config: props.config,
       };
 
-  if (isDispatchProps(props)) {
-    const config = props.config ?? ('store' in props ? undefined : undefined);
-    return createElement(FormRendererDispatch, {
-      providerProps,
-      dispatch: props.dispatch,
-      config,
-      children,
-    });
-  }
-
-  return createElement(
-    FormProvider,
-    providerProps,
-    createElement(
-      RendererContext.Provider,
-      { value: props.renderers },
-      createElement(FieldDispatch, { path: '' }),
-      children,
-    ),
-  );
-}
-
-function FormRendererDispatch({
-  providerProps,
-  dispatch,
-  config,
-  children,
-}: {
-  providerProps: Record<string, any>;
-  dispatch: ReactDispatchFn;
-  config?: PipelineConfig;
-  children?: ReactNode;
-}) {
   const enhancer = useMemo(() => {
     const enhancers = extractPropEnhancers(config);
     return composePropEnhancers(enhancers);

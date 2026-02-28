@@ -10,33 +10,24 @@ export type {
   PathSubscriber,
   PipelineConfig,
   PipelineContext,
-  RendererEntry,
   RendererProps,
 } from '@formica/core';
 export type { FormProviderProps } from './context.js';
 export { FormContext, FormProvider, useFormStore } from './context.js';
-export type { ComponentMap, CreateRenderersOptions } from './create-renderers.js';
-export { createRenderers } from './create-renderers.js';
 export type { FieldDispatchProps } from './dispatch/FieldDispatch.js';
 export { FieldDispatch } from './dispatch/FieldDispatch.js';
 export type { FormRendererProps } from './dispatch/FormRenderer.js';
 export { FormRenderer } from './dispatch/FormRenderer.js';
 export type {
   ReactDispatchFn,
-  ReactRendererEntry,
   ReactRendererProps,
 } from './dispatch/renderer-context.js';
-
-// Dispatch
 export {
   DispatchContext,
   PropEnhancerContext,
-  RendererContext,
   useDispatch,
   usePropEnhancer,
-  useRenderers,
 } from './dispatch/renderer-context.js';
-export { resolveRenderer } from './dispatch/resolve-renderer.js';
 export type { UseFieldReturn } from './hooks/use-field.js';
 export { useField } from './hooks/use-field.js';
 export type { UseFieldArrayReturn } from './hooks/use-field-array.js';

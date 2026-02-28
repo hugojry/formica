@@ -26,6 +26,7 @@ const pipelineConfig: PipelineConfig = {
 };
 
 const customDispatch = (node: FieldNode) => {
+  if (node.combinator) return null; // fall through to defaultDispatch
   if (hasEnum(node)) return Select;
   if (hasType(node, 'string')) return TextInput;
   if (hasType(node, 'number') || hasType(node, 'integer')) return NumberInput;

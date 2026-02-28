@@ -6,7 +6,6 @@ export {
   CombinatorRenderer,
   combinatorTester,
   defaultDispatch,
-  defaultRenderers,
   EnumRenderer,
   enumTester,
   hasEnum,

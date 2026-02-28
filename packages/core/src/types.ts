@@ -214,11 +214,6 @@ export interface RendererProps<RenderResult = unknown> {
   renderChild: (path: string) => RenderResult;
 }
 
-export interface RendererEntry<Component = unknown> {
-  tester: (node: FieldNode) => number;
-  renderer: Component;
-}
-
 // ─── Dispatch ───
 
 export type DispatchFn<Component = unknown> = (node: FieldNode) => Component | null;
