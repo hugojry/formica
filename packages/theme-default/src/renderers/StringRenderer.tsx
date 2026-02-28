@@ -1,8 +1,7 @@
 import type { FieldNode } from '@formica/core';
 import type { ReactRendererProps } from '@formica/react';
-import { getFieldErrors } from '@formica/validation';
 import { createElement } from 'react';
-import { hasEnum, hasType } from './tester-utils.js';
+import { getFieldErrors, hasEnum, hasType } from './tester-utils.js';
 
 function formatToInputType(format?: string): string {
   switch (format) {

@@ -10,3 +10,7 @@ export function hasType(node: FieldNode, type: JSONSchemaType): boolean {
 export function hasEnum(node: FieldNode): boolean {
   return node.constraints.enum != null && node.constraints.enum.length > 0;
 }
+
+export function getFieldErrors(node: FieldNode): Array<{ message: string }> {
+  return (node.validationErrors as Array<{ message: string }> | undefined) ?? [];
+}

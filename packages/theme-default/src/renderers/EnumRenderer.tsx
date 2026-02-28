@@ -1,8 +1,7 @@
 import type { FieldNode } from '@formica/core';
 import type { ReactRendererProps } from '@formica/react';
-import { getFieldErrors } from '@formica/validation';
 import { createElement } from 'react';
-import { hasEnum } from './tester-utils.js';
+import { getFieldErrors, hasEnum } from './tester-utils.js';
 
 export function EnumRenderer({ node, onChange }: ReactRendererProps) {
   const label = node.schema.title ?? node.path.split('/').pop() ?? '';
