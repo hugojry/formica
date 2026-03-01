@@ -7,6 +7,6 @@ export function createContext(schema: JSONSchema, data: unknown): PipelineContex
     root: null,
     index: new Map(),
     conditionalDeps: new Map(),
-    stage: 'NORMALIZE' as PipelineStage,
+    stage: 'EVALUATE_CONDITIONALS' as PipelineStage,
   };
 }

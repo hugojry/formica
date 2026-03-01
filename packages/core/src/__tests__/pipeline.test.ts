@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { runPipeline } from '../pipeline/pipeline.js';
+import { prepareSchema } from '../schema/prepare.js';
 import type { EnrichFn, JSONSchema, Middleware, PipelineConfig } from '../types.js';
 import { PipelineStage } from '../types.js';
 
@@ -155,12 +156,12 @@ describe('runPipeline — basic schemas', () => {
 
 describe('runPipeline — allOf', () => {
   test('merges allOf schemas', () => {
-    const schema: JSONSchema = {
+    const schema = prepareSchema({
       allOf: [
         { type: 'object', properties: { a: { type: 'string' } } },
         { properties: { b: { type: 'number' } }, required: ['b'] },
       ],
-    };
+    });
     const model = runPipeline(schema, { a: 'hello', b: 42 });
     expect(model.index.get('/a')!.value).toBe('hello');
     expect(model.index.get('/b')!.value).toBe(42);
@@ -168,14 +169,14 @@ describe('runPipeline — allOf', () => {
   });
 
   test('merges nested allOf', () => {
-    const schema: JSONSchema = {
+    const schema = prepareSchema({
       type: 'object',
       properties: {
         field: {
           allOf: [{ type: 'number', minimum: 0 }, { maximum: 100 }],
         },
       },
-    };
+    });
     const model = runPipeline(schema, { field: 50 });
     const node = model.index.get('/field')!;
     expect(node.constraints.minimum).toBe(0);
@@ -284,7 +285,7 @@ describe('runPipeline — dependentSchemas/dependentRequired', () => {
 
 describe('runPipeline — $ref', () => {
   test('resolves $ref to $defs', () => {
-    const schema: JSONSchema = {
+    const schema = prepareSchema({
       $defs: {
         Name: { type: 'string', minLength: 1 },
       },
@@ -292,7 +293,7 @@ describe('runPipeline — $ref', () => {
       properties: {
         name: { $ref: '#/$defs/Name' },
       },
-    };
+    });
     const model = runPipeline(schema, { name: 'Alice' });
     const nameNode = model.index.get('/name')!;
     expect(nameNode.type).toBe('string');
@@ -343,7 +344,7 @@ describe('runPipeline — oneOf', () => {
 
 describe('runPipeline — Draft 7 normalization', () => {
   test('Draft 7 definitions are resolved', () => {
-    const schema: JSONSchema = {
+    const schema = prepareSchema({
       definitions: {
         Age: { type: 'integer', minimum: 0 },
       },
@@ -351,7 +352,7 @@ describe('runPipeline — Draft 7 normalization', () => {
       properties: {
         age: { $ref: '#/$defs/Age' },
       },
-    };
+    });
     const model = runPipeline(schema, { age: 25 });
     const ageNode = model.index.get('/age')!;
     expect(ageNode.type).toBe('integer');
@@ -359,7 +360,7 @@ describe('runPipeline — Draft 7 normalization', () => {
   });
 
   test('Draft 7 dependencies normalized', () => {
-    const schema: JSONSchema = {
+    const schema = prepareSchema({
       type: 'object',
       properties: {
         a: { type: 'string' },
@@ -368,7 +369,7 @@ describe('runPipeline — Draft 7 normalization', () => {
       dependencies: {
         a: ['b'],
       },
-    };
+    });
     const model = runPipeline(schema, { a: 'hello' });
     expect(model.index.get('/b')!.required).toBe(true);
   });

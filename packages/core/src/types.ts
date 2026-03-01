@@ -155,9 +155,6 @@ export interface FieldNode {
 // ─── Pipeline ───
 
 export enum PipelineStage {
-  NORMALIZE = 'NORMALIZE',
-  RESOLVE_REFS = 'RESOLVE_REFS',
-  MERGE_ALL_OF = 'MERGE_ALL_OF',
   EVALUATE_CONDITIONALS = 'EVALUATE_CONDITIONALS',
   EVALUATE_DEPENDENTS = 'EVALUATE_DEPENDENTS',
   RESOLVE_COMBINATORS = 'RESOLVE_COMBINATORS',
@@ -184,14 +181,8 @@ export type EnrichFn = (node: FieldNode, ctx: PipelineContext) => Record<string,
 export interface PipelineConfig {
   middleware?: Partial<Record<PipelineStage, Middleware[]>>;
   enrichments?: EnrichFn[];
-  /** Cache the result of static pipeline stages (normalize, resolve refs, merge allOf). Defaults to true. */
-  cacheStaticStages?: boolean;
 }
 
-/** The result of running the static pipeline stages. Can be reused across data changes. */
-export interface PreparedSchema {
-  schema: JSONSchema;
-}
 // ─── Store ───
 
 export type PathSubscriber = (node: FieldNode) => void;

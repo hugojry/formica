@@ -1,5 +1,5 @@
 import { getByPath, setByPath } from '../model/path.js';
-import { prepareSchema, runPipeline, runPipelinePrepared } from '../pipeline/pipeline.js';
+import { runPipeline } from '../pipeline/pipeline.js';
 import type {
   FieldNode,
   FormStore,
@@ -16,13 +16,9 @@ export function createFormStore(
   initialData?: unknown,
   config?: PipelineConfig,
 ): FormStore {
-  const cacheStatic = config?.cacheStaticStages !== false;
-  const prepared = cacheStatic ? prepareSchema(schema, config) : undefined;
   const combinatorSelections = new Map<string, number>();
 
-  const rebuild = prepared
-    ? (data: unknown) => runPipelinePrepared(prepared, data, config, combinatorSelections)
-    : (data: unknown) => runPipeline(schema, data, config, combinatorSelections);
+  const rebuild = (data: unknown) => runPipeline(schema, data, config, combinatorSelections);
 
   let model = rebuild(initialData);
   const modelListeners = new Set<ModelSubscriber>();
@@ -46,7 +42,6 @@ export function createFormStore(
     // Compute dirty paths for targeted notifications
     const dirtyPaths = computeDirtyPaths(path, model.conditionalDeps);
 
-    // Re-run pipeline (static stages skipped when cached)
     const prevModel = model;
     model = rebuild(newData);
 

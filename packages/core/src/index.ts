@@ -41,16 +41,15 @@ export {
 
 // Pipeline
 export { applyEnrichments } from './pipeline/enrichments.js';
-export {
-  prepareSchema,
-  runPipeline,
-  runPipelinePrepared,
-} from './pipeline/pipeline.js';
+export { runPipeline } from './pipeline/pipeline.js';
 export { computeDirtyPaths, isPathAffected } from './reactivity/differ.js';
 // Reactivity
 export { createFormStore } from './reactivity/store.js';
 // Schema
+export { mergeAllOf } from './schema/merge-allof.js';
+export { mergeSchemas } from './schema/merge-schemas.js';
 export { normalizeSchemaDraft7 } from './schema/normalize.js';
+export { prepareSchema } from './schema/prepare.js';
 export { resolveAllRefs } from './schema/ref-resolver.js';
 export { traverseSchema } from './schema/traverse.js';
 export type {
@@ -69,7 +68,6 @@ export type {
   PathSubscriber,
   PipelineConfig,
   PipelineContext,
-  PreparedSchema,
   RendererProps,
 } from './types.js';
 export { PipelineStage } from './types.js';
