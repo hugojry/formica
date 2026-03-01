@@ -38,22 +38,6 @@ describe('useForm', () => {
     expect(data.name).toBe('Alice');
   });
 
-  test('state.isDirty is false initially', () => {
-    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
-
-    expect(result.current.state.isDirty).toBe(false);
-  });
-
-  test('state.isDirty becomes true after setData', () => {
-    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
-
-    act(() => {
-      result.current.setData('/name', 'Bob');
-    });
-
-    expect(result.current.state.isDirty).toBe(true);
-  });
-
   test('Field renders with field state', () => {
     const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
 

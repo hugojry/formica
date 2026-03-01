@@ -1,6 +1,5 @@
 import type {
   FieldNode,
-  FormState,
   FormStore,
   JSONSchema,
   PipelineConfig,
@@ -8,7 +7,7 @@ import type {
 } from '@formica/core';
 import { createFormStore } from '@formica/core';
 import type { ReactNode } from 'react';
-import { useCallback, useRef, useSyncExternalStore } from 'react';
+import { useRef } from 'react';
 import type { FieldProps } from '../components/Field.js';
 import { createFieldComponent } from '../components/Field.js';
 import type { SubscribeProps } from '../components/Subscribe.js';
@@ -28,7 +27,6 @@ export interface FormApi {
   getFieldNode: (path: string) => FieldNode | undefined;
   setCombinatorIndex: (path: string, index: number) => void;
   getModel: () => PipelineContext;
-  state: FormState;
 }
 
 export function useForm(options: UseFormOptions): FormApi {
@@ -50,15 +48,6 @@ export function useForm(options: UseFormOptions): FormApi {
     subscribeRef.current = createSubscribeComponent(storeAccessRef as { current: FormStore });
   }
 
-  const subscribeState = useCallback(
-    (onStoreChange: () => void) => store.subscribeState(onStoreChange),
-    [store],
-  );
-
-  const getStateSnapshot = useCallback(() => store.getState(), [store]);
-
-  const state = useSyncExternalStore(subscribeState, getStateSnapshot);
-
   return {
     Field: fieldRef.current,
     Subscribe: subscribeRef.current,
@@ -67,6 +56,5 @@ export function useForm(options: UseFormOptions): FormApi {
     getFieldNode: (path: string) => store.getModel().index.get(path),
     setCombinatorIndex: store.setCombinatorIndex,
     getModel: store.getModel,
-    state,
   };
 }
