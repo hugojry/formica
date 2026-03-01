@@ -188,6 +188,11 @@ export interface PipelineConfig {
 
 export type PathSubscriber = (node: FieldNode) => void;
 export type ModelSubscriber = (model: PipelineContext) => void;
+export type StateSubscriber = (state: FormState) => void;
+
+export interface FormState {
+  isDirty: boolean;
+}
 
 export interface FormStore {
   getModel(): PipelineContext;
@@ -196,19 +201,6 @@ export interface FormStore {
   setCombinatorIndex(path: string, index: number): void;
   subscribe(listener: ModelSubscriber): () => void;
   subscribePath(path: string, listener: PathSubscriber): () => void;
+  getState(): FormState;
+  subscribeState(listener: StateSubscriber): () => void;
 }
-
-// ─── Renderer ───
-// Renderer types use generic placeholders so @formica/core stays React-free.
-// The React package supplies the concrete types.
-
-export interface RendererProps<RenderResult = unknown> {
-  node: FieldNode;
-  onChange: (value: unknown) => void;
-  setCombinatorIndex: (path: string, index: number) => void;
-  renderChild: (path: string) => RenderResult;
-}
-
-// ─── Dispatch ───
-
-export type DispatchFn<Component = unknown> = (node: FieldNode) => Component | null;

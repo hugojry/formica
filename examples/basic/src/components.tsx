@@ -1,3 +1,4 @@
+import type { FieldNode } from '@formica/core';
 import {
   getCheckboxProps,
   getFieldProps,
@@ -5,7 +6,6 @@ import {
   getSelectProps,
   getTextInputProps,
 } from '@formica/core';
-import type { ReactRendererProps } from '@formica/react';
 import type { ValidationError } from '@formica/validation';
 import { getFieldErrors } from '@formica/validation';
 
@@ -52,7 +52,12 @@ function FieldWrapper({ label, required, description, children, errors }: FieldW
 
 // ─── Leaf Components ───
 
-export function TextInput({ node, onChange }: ReactRendererProps) {
+interface FieldComponentProps {
+  node: FieldNode;
+  onChange: (value: unknown) => void;
+}
+
+export function TextInput({ node, onChange }: FieldComponentProps) {
   const field = getFieldProps(node);
   const input = getTextInputProps(node);
   const errors = getFieldErrors(node);
@@ -77,7 +82,7 @@ export function TextInput({ node, onChange }: ReactRendererProps) {
   );
 }
 
-export function NumberInput({ node, onChange }: ReactRendererProps) {
+export function NumberInput({ node, onChange }: FieldComponentProps) {
   const field = getFieldProps(node);
   const input = getNumberInputProps(node);
   const errors = getFieldErrors(node);
@@ -105,7 +110,7 @@ export function NumberInput({ node, onChange }: ReactRendererProps) {
   );
 }
 
-export function Checkbox({ node, onChange }: ReactRendererProps) {
+export function Checkbox({ node, onChange }: FieldComponentProps) {
   const field = getFieldProps(node);
   const input = getCheckboxProps(node);
   const errors = getFieldErrors(node);
@@ -129,7 +134,7 @@ export function Checkbox({ node, onChange }: ReactRendererProps) {
   );
 }
 
-export function Select({ node, onChange }: ReactRendererProps) {
+export function Select({ node, onChange }: FieldComponentProps) {
   const field = getFieldProps(node);
   const input = getSelectProps(node);
   const errors = getFieldErrors(node);

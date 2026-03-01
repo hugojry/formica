@@ -2,14 +2,42 @@ import { getByPath, setByPath } from '../model/path.js';
 import { runPipeline } from '../pipeline/pipeline.js';
 import type {
   FieldNode,
+  FormState,
   FormStore,
   JSONSchema,
   ModelSubscriber,
   PathSubscriber,
   PipelineConfig,
   PipelineContext,
+  StateSubscriber,
 } from '../types.js';
 import { computeDirtyPaths, isPathAffected } from './differ.js';
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a == null || b == null) return a === b;
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== 'object') return false;
+
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  const aObj = a as Record<string, unknown>;
+  const bObj = b as Record<string, unknown>;
+  const aKeys = Object.keys(aObj);
+  const bKeys = Object.keys(bObj);
+  if (aKeys.length !== bKeys.length) return false;
+  for (const key of aKeys) {
+    if (!Object.hasOwn(bObj, key)) return false;
+    if (!deepEqual(aObj[key], bObj[key])) return false;
+  }
+  return true;
+}
 
 export function createFormStore(
   schema: JSONSchema,
@@ -21,8 +49,25 @@ export function createFormStore(
   const rebuild = (data: unknown) => runPipeline(schema, data, config, combinatorSelections);
 
   let model = rebuild(initialData);
+  const initialSnapshot = structuredClone(model.data);
+  let currentState: FormState = { isDirty: false };
   const modelListeners = new Set<ModelSubscriber>();
   const pathListeners = new Map<string, Set<PathSubscriber>>();
+  const stateListeners = new Set<StateSubscriber>();
+
+  function computeIsDirty(): boolean {
+    return !deepEqual(model.data, initialSnapshot);
+  }
+
+  function updateState(): void {
+    const isDirty = computeIsDirty();
+    if (isDirty !== currentState.isDirty) {
+      currentState = { isDirty };
+      for (const listener of stateListeners) {
+        listener(currentState);
+      }
+    }
+  }
 
   function getModel(): PipelineContext {
     return model;
@@ -66,6 +111,8 @@ export function createFormStore(
     for (const listener of modelListeners) {
       listener(model);
     }
+
+    updateState();
   }
 
   function setCombinatorIndex(path: string, index: number): void {
@@ -117,6 +164,15 @@ export function createFormStore(
     };
   }
 
+  function getState(): FormState {
+    return currentState;
+  }
+
+  function subscribeState(listener: StateSubscriber): () => void {
+    stateListeners.add(listener);
+    return () => stateListeners.delete(listener);
+  }
+
   return {
     getModel,
     getData,
@@ -124,6 +180,8 @@ export function createFormStore(
     setCombinatorIndex,
     subscribe,
     subscribePath,
+    getState,
+    subscribeState,
   };
 }
 

@@ -1,6 +1,3 @@
-// Dispatch
-export { composeDispatch } from './compose-dispatch.js';
-
 // Field Props
 export type {
   CheckboxProps,
@@ -55,11 +52,11 @@ export { traverseSchema } from './schema/traverse.js';
 export type {
   ArrayMeta,
   CombinatorInfo,
-  DispatchFn,
   EnrichFn,
   FieldConstraints,
   FieldNode,
   FieldOrigin,
+  FormState,
   FormStore,
   JSONSchema,
   JSONSchemaType,
@@ -68,6 +65,6 @@ export type {
   PathSubscriber,
   PipelineConfig,
   PipelineContext,
-  RendererProps,
+  StateSubscriber,
 } from './types.js';
 export { PipelineStage } from './types.js';

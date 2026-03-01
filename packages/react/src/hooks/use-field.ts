@@ -1,6 +1,5 @@
-import type { FieldNode } from '@formica/core';
+import type { FieldNode, FormStore } from '@formica/core';
 import { useCallback, useSyncExternalStore } from 'react';
-import { useFormStore } from '../context.js';
 
 export interface UseFieldReturn {
   node: FieldNode | undefined;
@@ -8,9 +7,7 @@ export interface UseFieldReturn {
   setCombinatorIndex: (path: string, index: number) => void;
 }
 
-export function useField(path: string): UseFieldReturn {
-  const store = useFormStore();
-
+export function useField(path: string, store: FormStore): UseFieldReturn {
   const subscribe = useCallback(
     (onStoreChange: () => void) => store.subscribePath(path, () => onStoreChange()),
     [store, path],

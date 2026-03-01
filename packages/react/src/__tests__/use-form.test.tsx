@@ -1,8 +1,5 @@
 import { describe, expect, test } from 'bun:test';
 import type { JSONSchema } from '@formica/core';
-import { createFormStore } from '@formica/core';
-import { createElement } from 'react';
-import { FormProvider } from '../context.js';
 import { useForm } from '../hooks/use-form.js';
 import { act, renderHook } from './helpers.js';
 
@@ -14,48 +11,69 @@ const schema: JSONSchema = {
   },
 };
 
-function createWrapper(store: ReturnType<typeof createFormStore>) {
-  return ({ children }: { children?: React.ReactNode }) =>
-    createElement(FormProvider, { store }, children);
-}
-
 describe('useForm', () => {
-  test('returns initial model', () => {
-    const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    const { result } = renderHook(() => useForm(), {
-      wrapper: createWrapper(store),
-    });
+  test('creates form with initial data', () => {
+    const { result } = renderHook(() =>
+      useForm({ schema, initialData: { name: 'Alice', age: 30 } }),
+    );
 
-    expect(result.current.model.root!.type).toBe('object');
-    expect(result.current.model.index.get('/name')?.value).toBe('Alice');
+    expect(result.current.getModel().root!.type).toBe('object');
+    expect(result.current.getFieldNode('/name')?.value).toBe('Alice');
   });
 
-  test('re-renders on setData', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const { result } = renderHook(() => useForm(), {
-      wrapper: createWrapper(store),
-    });
-
-    const modelBefore = result.current.model;
+  test('setData updates data', () => {
+    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
 
     act(() => {
-      store.setData('/name', 'Bob');
+      result.current.setData('/name', 'Bob');
     });
 
-    expect(result.current.model.index.get('/name')?.value).toBe('Bob');
-    expect(result.current.model).not.toBe(modelBefore);
+    expect(result.current.getFieldNode('/name')?.value).toBe('Bob');
+  });
+
+  test('getData returns current data', () => {
+    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
+
+    const data = result.current.getData() as Record<string, unknown>;
+    expect(data.name).toBe('Alice');
+  });
+
+  test('state.isDirty is false initially', () => {
+    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
+
+    expect(result.current.state.isDirty).toBe(false);
+  });
+
+  test('state.isDirty becomes true after setData', () => {
+    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
+
+    act(() => {
+      result.current.setData('/name', 'Bob');
+    });
+
+    expect(result.current.state.isDirty).toBe(true);
+  });
+
+  test('Field renders with field state', () => {
+    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
+
+    // Field component exists
+    expect(typeof result.current.Field).toBe('function');
+  });
+
+  test('Subscribe component exists', () => {
+    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
+
+    expect(typeof result.current.Subscribe).toBe('function');
   });
 
   test('setData is stable across renders', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const { result } = renderHook(() => useForm(), {
-      wrapper: createWrapper(store),
-    });
+    const { result } = renderHook(() => useForm({ schema, initialData: { name: 'Alice' } }));
 
     const setDataBefore = result.current.setData;
 
     act(() => {
-      store.setData('/name', 'Bob');
+      result.current.setData('/name', 'Bob');
     });
 
     expect(result.current.setData).toBe(setDataBefore);

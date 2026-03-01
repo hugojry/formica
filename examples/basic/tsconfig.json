@@ -6,9 +6,5 @@
     "composite": true
   },
   "include": ["src"],
-  "references": [
-    { "path": "../../packages/core" },
-    { "path": "../../packages/react" },
-    { "path": "../../packages/theme-default" }
-  ]
+  "references": [{ "path": "../../packages/core" }, { "path": "../../packages/react" }]
 }

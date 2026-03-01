@@ -1,8 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import type { JSONSchema } from '@formica/core';
 import { createFormStore } from '@formica/core';
-import { createElement } from 'react';
-import { FormProvider } from '../context.js';
 import { useField } from '../hooks/use-field.js';
 import { act, renderHook } from './helpers.js';
 
@@ -25,17 +23,10 @@ const schema: JSONSchema = {
   },
 };
 
-function createWrapper(store: ReturnType<typeof createFormStore>) {
-  return ({ children }: { children?: React.ReactNode }) =>
-    createElement(FormProvider, { store }, children);
-}
-
 describe('useField', () => {
   test('returns correct node for path', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    const { result } = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
+    const { result } = renderHook(() => useField('/name', store));
 
     expect(result.current.node?.value).toBe('Alice');
     expect(result.current.node?.path).toBe('/name');
@@ -43,18 +34,14 @@ describe('useField', () => {
 
   test('returns undefined for missing path', () => {
     const store = createFormStore(schema, { name: 'Alice' });
-    const { result } = renderHook(() => useField('/nonexistent'), {
-      wrapper: createWrapper(store),
-    });
+    const { result } = renderHook(() => useField('/nonexistent', store));
 
     expect(result.current.node).toBeUndefined();
   });
 
   test('re-renders when own path changes', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    const { result } = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
+    const { result } = renderHook(() => useField('/name', store));
 
     act(() => {
       store.setData('/name', 'Bob');
@@ -65,9 +52,7 @@ describe('useField', () => {
 
   test('onChange wires to setData', () => {
     const store = createFormStore(schema, { name: 'Alice' });
-    const { result } = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
+    const { result } = renderHook(() => useField('/name', store));
 
     act(() => {
       result.current.onChange('Carol');
@@ -81,9 +66,7 @@ describe('useField', () => {
 describe('useField — selective re-rendering', () => {
   test('does not re-render when a sibling field changes', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    const { result, renderCount } = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
+    const { result, renderCount } = renderHook(() => useField('/name', store));
 
     const initialRenders = renderCount.current;
     expect(result.current.node?.value).toBe('Alice');
@@ -101,9 +84,7 @@ describe('useField — selective re-rendering', () => {
       name: 'Alice',
       address: { street: '123 Main', city: 'Springfield' },
     });
-    const { result, renderCount } = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
+    const { result, renderCount } = renderHook(() => useField('/name', store));
 
     const initialRenders = renderCount.current;
 
@@ -120,9 +101,7 @@ describe('useField — selective re-rendering', () => {
       name: 'Alice',
       tags: ['a', 'b'],
     });
-    const { result, renderCount } = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
+    const { result, renderCount } = renderHook(() => useField('/name', store));
 
     const initialRenders = renderCount.current;
 
@@ -137,12 +116,8 @@ describe('useField — selective re-rendering', () => {
   test('re-renders only the affected field among multiple subscribers', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
 
-    const nameHook = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
-    const ageHook = renderHook(() => useField('/age'), {
-      wrapper: createWrapper(store),
-    });
+    const nameHook = renderHook(() => useField('/name', store));
+    const ageHook = renderHook(() => useField('/age', store));
 
     const nameRenders = nameHook.renderCount.current;
     const ageRenders = ageHook.renderCount.current;
@@ -160,9 +135,7 @@ describe('useField — selective re-rendering', () => {
 
   test('does not re-render when value is set to the same identity', () => {
     const store = createFormStore(schema, { name: 'Alice' });
-    const { renderCount } = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
+    const { renderCount } = renderHook(() => useField('/name', store));
 
     const initialRenders = renderCount.current;
 
@@ -177,9 +150,7 @@ describe('useField — selective re-rendering', () => {
     const store = createFormStore(schema, {
       address: { street: '123 Main', city: 'Springfield' },
     });
-    const { result, renderCount } = renderHook(() => useField('/address'), {
-      wrapper: createWrapper(store),
-    });
+    const { result, renderCount } = renderHook(() => useField('/address', store));
 
     const initialRenders = renderCount.current;
 
@@ -212,9 +183,7 @@ describe('useField — selective re-rendering', () => {
     const store = createFormStore(deepSchema, {
       level1: { level2: { level3: 'deep' } },
     });
-    const { result, renderCount } = renderHook(() => useField('/level1'), {
-      wrapper: createWrapper(store),
-    });
+    const { result, renderCount } = renderHook(() => useField('/level1', store));
 
     const initialRenders = renderCount.current;
 
@@ -231,9 +200,7 @@ describe('useField — selective re-rendering', () => {
     const store = createFormStore(schema, {
       tags: ['a', 'b', 'c'],
     });
-    const { result, renderCount } = renderHook(() => useField('/tags'), {
-      wrapper: createWrapper(store),
-    });
+    const { result, renderCount } = renderHook(() => useField('/tags', store));
 
     const initialRenders = renderCount.current;
 
@@ -252,9 +219,7 @@ describe('useField — selective re-rendering', () => {
       age: 30,
       tags: ['a'],
     });
-    const { renderCount } = renderHook(() => useField('/name'), {
-      wrapper: createWrapper(store),
-    });
+    const { renderCount } = renderHook(() => useField('/name', store));
 
     const initialRenders = renderCount.current;
 

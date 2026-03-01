@@ -261,3 +261,60 @@ describe('dirty path filtering', () => {
     expect(notifications).toEqual(['a/x']);
   });
 });
+
+describe('FormState — isDirty', () => {
+  const schema: JSONSchema = {
+    type: 'object',
+    properties: {
+      name: { type: 'string' },
+      age: { type: 'number' },
+    },
+  };
+
+  test('getState returns isDirty false initially', () => {
+    const store = createFormStore(schema, { name: 'Alice', age: 30 });
+    expect(store.getState().isDirty).toBe(false);
+  });
+
+  test('isDirty becomes true after setData', () => {
+    const store = createFormStore(schema, { name: 'Alice', age: 30 });
+    store.setData('/name', 'Bob');
+    expect(store.getState().isDirty).toBe(true);
+  });
+
+  test('isDirty returns to false when data matches initial', () => {
+    const store = createFormStore(schema, { name: 'Alice', age: 30 });
+    store.setData('/name', 'Bob');
+    expect(store.getState().isDirty).toBe(true);
+    store.setData('/name', 'Alice');
+    expect(store.getState().isDirty).toBe(false);
+  });
+
+  test('subscribeState notifies when isDirty changes', () => {
+    const store = createFormStore(schema, { name: 'Alice' });
+    const states: boolean[] = [];
+    store.subscribeState((s) => states.push(s.isDirty));
+
+    store.setData('/name', 'Bob');
+    expect(states).toEqual([true]);
+
+    store.setData('/name', 'Alice');
+    expect(states).toEqual([true, false]);
+  });
+
+  test('subscribeState does not notify when isDirty stays the same', () => {
+    const store = createFormStore(schema, { name: 'Alice' });
+    const states: boolean[] = [];
+    store.subscribeState((s) => states.push(s.isDirty));
+
+    store.setData('/name', 'Bob');
+    store.setData('/name', 'Charlie');
+    // isDirty was already true, should not re-notify
+    expect(states).toEqual([true]);
+  });
+
+  test('isDirty false when no initial data and no changes', () => {
+    const store = createFormStore(schema);
+    expect(store.getState().isDirty).toBe(false);
+  });
+});
