@@ -172,6 +172,7 @@ export interface PipelineContext {
   stage: PipelineStage;
   combinatorSelections?: Map<string, number>;
   resolvedCombinators?: Map<string, CombinatorInfo>;
+  extensions: Record<string, unknown>;
 }
 
 export type Middleware = (ctx: PipelineContext, next: () => PipelineContext) => PipelineContext;
