@@ -158,17 +158,15 @@ function RenderRoot({ form }: { form: FormApi }) {
 
 function DataPreview({ form }: { form: FormApi }) {
   return (
-    <form.Field path="">
-      {(field) => (
+    <form.Subscribe selector={(s) => s}>
+      {(state) => (
         <div>
           <h2 style={{ margin: '0 0 8px', fontSize: '1.1em' }}>Live Data</h2>
-          <pre>{JSON.stringify(field.value, null, 2)}</pre>
-          <form.Subscribe selector={(s) => s.isDirty}>
-            {(isDirty) => <p style={{ marginTop: 8 }}>Form is {isDirty ? 'dirty' : 'clean'}</p>}
-          </form.Subscribe>
+          <pre>{JSON.stringify(state.data, null, 2)}</pre>
+          <p style={{ marginTop: 8 }}>Form is {state.isDirty ? 'dirty' : 'clean'}</p>
         </div>
       )}
-    </form.Field>
+    </form.Subscribe>
   );
 }
 

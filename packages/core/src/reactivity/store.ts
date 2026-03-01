@@ -50,7 +50,7 @@ export function createFormStore(
 
   let model = rebuild(initialData);
   const initialSnapshot = structuredClone(model.data);
-  let currentState: FormState = { isDirty: false };
+  let currentState: FormState = { data: model.data, isDirty: false };
   const modelListeners = new Set<ModelSubscriber>();
   const pathListeners = new Map<string, Set<PathSubscriber>>();
   const stateListeners = new Set<StateSubscriber>();
@@ -61,11 +61,9 @@ export function createFormStore(
 
   function updateState(): void {
     const isDirty = computeIsDirty();
-    if (isDirty !== currentState.isDirty) {
-      currentState = { isDirty };
-      for (const listener of stateListeners) {
-        listener(currentState);
-      }
+    currentState = { data: model.data, isDirty };
+    for (const listener of stateListeners) {
+      listener(currentState);
     }
   }
 

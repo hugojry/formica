@@ -262,7 +262,7 @@ describe('dirty path filtering', () => {
   });
 });
 
-describe('FormState — isDirty', () => {
+describe('FormState', () => {
   const schema: JSONSchema = {
     type: 'object',
     properties: {
@@ -271,9 +271,17 @@ describe('FormState — isDirty', () => {
     },
   };
 
-  test('getState returns isDirty false initially', () => {
+  test('getState returns initial data and isDirty false', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    expect(store.getState().isDirty).toBe(false);
+    const state = store.getState();
+    expect(state.isDirty).toBe(false);
+    expect((state.data as Record<string, unknown>).name).toBe('Alice');
+  });
+
+  test('getState.data updates after setData', () => {
+    const store = createFormStore(schema, { name: 'Alice' });
+    store.setData('/name', 'Bob');
+    expect((store.getState().data as Record<string, unknown>).name).toBe('Bob');
   });
 
   test('isDirty becomes true after setData', () => {
@@ -290,27 +298,26 @@ describe('FormState — isDirty', () => {
     expect(store.getState().isDirty).toBe(false);
   });
 
-  test('subscribeState notifies when isDirty changes', () => {
+  test('subscribeState notifies on every data change', () => {
     const store = createFormStore(schema, { name: 'Alice' });
-    const states: boolean[] = [];
-    store.subscribeState((s) => states.push(s.isDirty));
-
-    store.setData('/name', 'Bob');
-    expect(states).toEqual([true]);
-
-    store.setData('/name', 'Alice');
-    expect(states).toEqual([true, false]);
-  });
-
-  test('subscribeState does not notify when isDirty stays the same', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const states: boolean[] = [];
-    store.subscribeState((s) => states.push(s.isDirty));
+    const names: unknown[] = [];
+    store.subscribeState((s) => names.push((s.data as Record<string, unknown>).name));
 
     store.setData('/name', 'Bob');
     store.setData('/name', 'Charlie');
-    // isDirty was already true, should not re-notify
-    expect(states).toEqual([true]);
+    expect(names).toEqual(['Bob', 'Charlie']);
+  });
+
+  test('subscribeState notifies when isDirty changes', () => {
+    const store = createFormStore(schema, { name: 'Alice' });
+    const dirtyStates: boolean[] = [];
+    store.subscribeState((s) => dirtyStates.push(s.isDirty));
+
+    store.setData('/name', 'Bob');
+    expect(dirtyStates).toEqual([true]);
+
+    store.setData('/name', 'Alice');
+    expect(dirtyStates).toEqual([true, false]);
   });
 
   test('isDirty false when no initial data and no changes', () => {

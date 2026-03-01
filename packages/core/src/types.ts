@@ -191,6 +191,7 @@ export type ModelSubscriber = (model: PipelineContext) => void;
 export type StateSubscriber = (state: FormState) => void;
 
 export interface FormState {
+  data: unknown;
   isDirty: boolean;
 }
 
