@@ -40,6 +40,7 @@ export {
 } from './model/path.js';
 
 // Pipeline
+export { applyEnrichments } from './pipeline/enrichments.js';
 export {
   prepareSchema,
   runPipeline,
@@ -56,6 +57,7 @@ export type {
   ArrayMeta,
   CombinatorInfo,
   DispatchFn,
+  EnrichFn,
   FieldConstraints,
   FieldNode,
   FieldOrigin,

@@ -67,14 +67,12 @@ const anyOfSchema: JSONSchema = {
   ],
 };
 
-// ─── RESOLVE_COMBINATORS stage (via runPipeline with meta) ───
+// ─── RESOLVE_COMBINATORS stage (via runPipeline with combinatorSelections) ───
 
 describe('RESOLVE_COMBINATORS stage', () => {
-  test('resolves oneOf when selection provided via meta', () => {
+  test('resolves oneOf when selection provided', () => {
     const selections = new Map<string, number>([['', 1]]);
-    const model = runPipeline(objectOneOfSchema, {}, undefined, {
-      combinatorSelections: selections,
-    });
+    const model = runPipeline(objectOneOfSchema, {}, undefined, selections);
 
     expect(model.root!.combinator).toBeDefined();
     expect(model.root!.combinator!.activeIndex).toBe(1);
@@ -85,9 +83,7 @@ describe('RESOLVE_COMBINATORS stage', () => {
 
   test('resolved oneOf builds children from selected branch', () => {
     const selections = new Map<string, number>([['', 1]]);
-    const model = runPipeline(objectOneOfSchema, {}, undefined, {
-      combinatorSelections: selections,
-    });
+    const model = runPipeline(objectOneOfSchema, {}, undefined, selections);
 
     // Company branch has kind, companyName, employees
     expect(model.index.has('/kind')).toBe(true);
@@ -99,9 +95,7 @@ describe('RESOLVE_COMBINATORS stage', () => {
 
   test('selecting first branch shows its fields', () => {
     const selections = new Map<string, number>([['', 0]]);
-    const model = runPipeline(objectOneOfSchema, {}, undefined, {
-      combinatorSelections: selections,
-    });
+    const model = runPipeline(objectOneOfSchema, {}, undefined, selections);
 
     expect(model.root!.combinator!.activeIndex).toBe(0);
     expect(model.index.has('/kind')).toBe(true);
@@ -111,9 +105,7 @@ describe('RESOLVE_COMBINATORS stage', () => {
 
   test('resolves nested oneOf at subpath', () => {
     const selections = new Map<string, number>([['/contact', 0]]);
-    const model = runPipeline(nestedOneOfSchema, {}, undefined, {
-      combinatorSelections: selections,
-    });
+    const model = runPipeline(nestedOneOfSchema, {}, undefined, selections);
 
     const contactNode = model.index.get('/contact')!;
     expect(contactNode.combinator).toBeDefined();
@@ -126,9 +118,7 @@ describe('RESOLVE_COMBINATORS stage', () => {
 
   test('resolves anyOf similarly to oneOf', () => {
     const selections = new Map<string, number>([['', 1]]);
-    const model = runPipeline(anyOfSchema, {}, undefined, {
-      combinatorSelections: selections,
-    });
+    const model = runPipeline(anyOfSchema, {}, undefined, selections);
 
     expect(model.root!.combinator).toBeDefined();
     expect(model.root!.combinator!.type).toBe('anyOf');
@@ -149,9 +139,7 @@ describe('RESOLVE_COMBINATORS stage', () => {
 
   test('ignores out-of-bounds selection index', () => {
     const selections = new Map<string, number>([['', 99]]);
-    const model = runPipeline(objectOneOfSchema, {}, undefined, {
-      combinatorSelections: selections,
-    });
+    const model = runPipeline(objectOneOfSchema, {}, undefined, selections);
 
     // Out of bounds — not resolved by RESOLVE_COMBINATORS, falls through to BUILD_TREE
     expect(model.root!.combinator).toBeDefined();
@@ -161,9 +149,12 @@ describe('RESOLVE_COMBINATORS stage', () => {
   test('selection works even when data does not match the variant', () => {
     // This is the key scenario: user picks a variant but data is empty/mismatched
     const selections = new Map<string, number>([['', 1]]);
-    const model = runPipeline(objectOneOfSchema, { kind: 'person', name: 'Alice' }, undefined, {
-      combinatorSelections: selections,
-    });
+    const model = runPipeline(
+      objectOneOfSchema,
+      { kind: 'person', name: 'Alice' },
+      undefined,
+      selections,
+    );
 
     // Even though data matches Person, explicit selection overrides to Company
     expect(model.root!.combinator!.activeIndex).toBe(1);

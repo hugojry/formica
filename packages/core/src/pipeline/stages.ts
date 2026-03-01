@@ -429,16 +429,11 @@ function evaluateDependentsRecursive(schema: JSONSchema, data: unknown): JSONSch
 // ─── Stage: RESOLVE_COMBINATORS ───
 
 export function resolveCombinators(ctx: PipelineContext): PipelineContext {
-  const selections = ctx.meta.combinatorSelections as Map<string, number> | undefined;
+  const selections = ctx.combinatorSelections;
   if (!selections || selections.size === 0) return ctx;
 
-  ctx.meta.resolvedCombinators = new Map<string, CombinatorInfo>();
-  ctx.schema = resolveCombinatorRecursive(
-    ctx.schema,
-    '',
-    selections,
-    ctx.meta.resolvedCombinators as Map<string, CombinatorInfo>,
-  );
+  ctx.resolvedCombinators = new Map<string, CombinatorInfo>();
+  ctx.schema = resolveCombinatorRecursive(ctx.schema, '', selections, ctx.resolvedCombinators);
   return ctx;
 }
 
@@ -497,7 +492,15 @@ function resolveCombinatorRecursive(
 // ─── Stage: BUILD_TREE ───
 
 export function buildTree(ctx: PipelineContext): PipelineContext {
-  ctx.root = buildFieldNode(ctx.schema, ctx.data, '', 'root', false, ctx.index, ctx.meta);
+  ctx.root = buildFieldNode(
+    ctx.schema,
+    ctx.data,
+    '',
+    'root',
+    false,
+    ctx.index,
+    ctx.resolvedCombinators,
+  );
   return ctx;
 }
 
@@ -508,7 +511,7 @@ function buildFieldNode(
   origin: FieldOrigin,
   required: boolean,
   index: Map<string, FieldNode>,
-  meta: Record<string, unknown>,
+  resolvedCombinators?: Map<string, CombinatorInfo>,
 ): FieldNode {
   const type = resolveType(schema, data);
   const constraints = extractConstraints(schema);
@@ -545,7 +548,15 @@ function buildFieldNode(
         { ...schema, oneOf: undefined, anyOf: undefined },
         options[combinator.activeIndex],
       );
-      const activeNode = buildFieldNode(activeSchema, data, path, origin, required, index, meta);
+      const activeNode = buildFieldNode(
+        activeSchema,
+        data,
+        path,
+        origin,
+        required,
+        index,
+        resolvedCombinators,
+      );
       // Use the active node's children
       children.push(...activeNode.children);
     }
@@ -569,7 +580,7 @@ function buildFieldNode(
         'property',
         requiredSet.has(key),
         index,
-        meta,
+        resolvedCombinators,
       );
       children.push(childNode);
     }
@@ -602,14 +613,13 @@ function buildFieldNode(
         childOrigin,
         false,
         index,
-        meta,
+        resolvedCombinators,
       );
       children.push(childNode);
     });
   }
 
   // Attach CombinatorInfo from RESOLVE_COMBINATORS stage if this path was explicitly resolved
-  const resolvedCombinators = meta.resolvedCombinators as Map<string, CombinatorInfo> | undefined;
   if (!combinator && resolvedCombinators?.has(path)) {
     combinator = resolvedCombinators.get(path)!;
   }

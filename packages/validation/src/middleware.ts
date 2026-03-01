@@ -21,9 +21,7 @@ export function createValidationMiddleware(): Middleware {
   return (_ctx, next) => {
     const result = next();
 
-    const allErrors = new Map<string, ValidationError[]>();
-
-    for (const [path, node] of result.index) {
+    for (const [, node] of result.index) {
       if (node.value == null || node.value === '') continue;
 
       const validate = getValidator(node.schema);
@@ -36,11 +34,9 @@ export function createValidationMiddleware(): Middleware {
           params: (err.params as Record<string, unknown>) ?? {},
         }));
         node.validationErrors = errors;
-        allErrors.set(path, errors);
       }
     }
 
-    result.meta.validationErrors = allErrors;
     return result;
   };
 }

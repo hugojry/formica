@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { runPipeline } from '../pipeline/pipeline.js';
-import type { JSONSchema, Middleware, PipelineConfig } from '../types.js';
+import type { EnrichFn, JSONSchema, Middleware, PipelineConfig } from '../types.js';
 import { PipelineStage } from '../types.js';
 
 describe('runPipeline — basic schemas', () => {
@@ -505,5 +505,61 @@ describe('middleware', () => {
 
     runPipeline({ type: 'string' }, 'x', config);
     expect(log).toEqual(['1-before', '2-before', '2-after', '1-after']);
+  });
+});
+
+describe('enrichments', () => {
+  test('single enrichment adds property to nodes', () => {
+    const enrich: EnrichFn = (node) => ({ tag: `enriched:${node.path}` });
+    const config: PipelineConfig = { enrichments: [enrich] };
+    const model = runPipeline(
+      { type: 'object', properties: { a: { type: 'string' } } },
+      { a: 'hello' },
+      config,
+    );
+    expect(model.root!.tag).toBe('enriched:');
+    expect(model.index.get('/a')!.tag).toBe('enriched:/a');
+  });
+
+  test('enrichment returning null skips the node', () => {
+    const enrich: EnrichFn = (node) => {
+      if (node.type === 'object') return null;
+      return { enriched: true };
+    };
+    const config: PipelineConfig = { enrichments: [enrich] };
+    const model = runPipeline(
+      { type: 'object', properties: { a: { type: 'string' } } },
+      { a: 'hello' },
+      config,
+    );
+    expect(model.root!.enriched).toBeUndefined();
+    expect(model.index.get('/a')!.enriched).toBe(true);
+  });
+
+  test('multiple enrichments compose (later ones see earlier props)', () => {
+    const first: EnrichFn = () => ({ step: 1 });
+    const second: EnrichFn = (node) => ({ step: (node.step as number) + 1 });
+    const config: PipelineConfig = { enrichments: [first, second] };
+    const model = runPipeline({ type: 'string' }, 'test', config);
+    expect(model.root!.step).toBe(2);
+  });
+
+  test('enrichments run after FINALIZE middleware', () => {
+    const log: string[] = [];
+    const middleware: Middleware = (_ctx, next) => {
+      const result = next();
+      log.push('middleware');
+      return result;
+    };
+    const enrich: EnrichFn = () => {
+      log.push('enrichment');
+      return null;
+    };
+    const config: PipelineConfig = {
+      middleware: { [PipelineStage.FINALIZE]: [middleware] },
+      enrichments: [enrich],
+    };
+    runPipeline({ type: 'string' }, 'test', config);
+    expect(log).toEqual(['middleware', 'enrichment']);
   });
 });

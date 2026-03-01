@@ -173,13 +173,17 @@ export interface PipelineContext {
   index: Map<string, FieldNode>;
   conditionalDeps: Map<string, Set<string>>;
   stage: PipelineStage;
-  meta: Record<string, unknown>;
+  combinatorSelections?: Map<string, number>;
+  resolvedCombinators?: Map<string, CombinatorInfo>;
 }
 
 export type Middleware = (ctx: PipelineContext, next: () => PipelineContext) => PipelineContext;
 
+export type EnrichFn = (node: FieldNode, ctx: PipelineContext) => Record<string, unknown> | null;
+
 export interface PipelineConfig {
   middleware?: Partial<Record<PipelineStage, Middleware[]>>;
+  enrichments?: EnrichFn[];
   /** Cache the result of static pipeline stages (normalize, resolve refs, merge allOf). Defaults to true. */
   cacheStaticStages?: boolean;
 }
@@ -187,7 +191,6 @@ export interface PipelineConfig {
 /** The result of running the static pipeline stages. Can be reused across data changes. */
 export interface PreparedSchema {
   schema: JSONSchema;
-  meta: Record<string, unknown>;
 }
 // ─── Store ───
 

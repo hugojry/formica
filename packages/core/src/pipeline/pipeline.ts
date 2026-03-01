@@ -8,6 +8,7 @@ import type {
 } from '../types.js';
 import { PipelineStage as Stage } from '../types.js';
 import { createContext } from './context.js';
+import { applyEnrichments } from './enrichments.js';
 import * as stages from './stages.js';
 
 const STATIC_STAGES: PipelineStage[] = [Stage.NORMALIZE, Stage.RESOLVE_REFS, Stage.MERGE_ALL_OF];
@@ -67,6 +68,9 @@ function runStages(
     const run = composeMiddleware(BUILT_IN[stage], middlewares);
     ctx = run(ctx);
   }
+  if (config?.enrichments?.length) {
+    applyEnrichments(ctx, config.enrichments);
+  }
   return ctx;
 }
 
@@ -76,7 +80,6 @@ export function prepareSchema(schema: JSONSchema, config?: PipelineConfig): Prep
   ctx = runStages(ctx, STATIC_STAGES, config);
   return {
     schema: ctx.schema,
-    meta: ctx.meta,
   };
 }
 
@@ -85,10 +88,10 @@ export function runPipeline(
   schema: JSONSchema,
   data: unknown,
   config?: PipelineConfig,
-  meta?: Record<string, unknown>,
+  combinatorSelections?: Map<string, number>,
 ): PipelineContext {
   let ctx = createContext(schema, data);
-  if (meta) Object.assign(ctx.meta, meta);
+  if (combinatorSelections) ctx.combinatorSelections = combinatorSelections;
   ctx = runStages(ctx, [...STATIC_STAGES, ...DYNAMIC_STAGES], config);
   return ctx;
 }
@@ -98,11 +101,10 @@ export function runPipelinePrepared(
   prepared: PreparedSchema,
   data: unknown,
   config?: PipelineConfig,
-  meta?: Record<string, unknown>,
+  combinatorSelections?: Map<string, number>,
 ): PipelineContext {
   let ctx = createContext(prepared.schema, data);
-  ctx.meta = { ...prepared.meta };
-  if (meta) Object.assign(ctx.meta, meta);
+  if (combinatorSelections) ctx.combinatorSelections = combinatorSelections;
   ctx = runStages(ctx, DYNAMIC_STAGES, config);
   return ctx;
 }

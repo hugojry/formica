@@ -20,13 +20,9 @@ export function createFormStore(
   const prepared = cacheStatic ? prepareSchema(schema, config) : undefined;
   const combinatorSelections = new Map<string, number>();
 
-  function getMeta(): Record<string, unknown> {
-    return combinatorSelections.size > 0 ? { combinatorSelections } : {};
-  }
-
   const rebuild = prepared
-    ? (data: unknown) => runPipelinePrepared(prepared, data, config, getMeta())
-    : (data: unknown) => runPipeline(schema, data, config, getMeta());
+    ? (data: unknown) => runPipelinePrepared(prepared, data, config, combinatorSelections)
+    : (data: unknown) => runPipeline(schema, data, config, combinatorSelections);
 
   let model = rebuild(initialData);
   const modelListeners = new Set<ModelSubscriber>();

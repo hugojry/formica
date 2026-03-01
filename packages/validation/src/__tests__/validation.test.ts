@@ -1,8 +1,12 @@
 import { describe, expect, test } from 'bun:test';
 import type { JSONSchema, PipelineConfig } from '@formica/core';
 import { PipelineStage, runPipeline } from '@formica/core';
-import type { ValidationError } from '../index.js';
-import { createValidationMiddleware, getFieldErrors, hasFieldErrors } from '../index.js';
+import {
+  createValidationEnrichment,
+  createValidationMiddleware,
+  getFieldErrors,
+  hasFieldErrors,
+} from '../index.js';
 
 function runWithValidation(schema: JSONSchema, data?: unknown) {
   const config: PipelineConfig = {
@@ -70,36 +74,6 @@ describe('createValidationMiddleware', () => {
     expect(errors.length).toBe(2);
     const keywords = errors.map((e) => e.keyword).sort();
     expect(keywords).toEqual(['minLength', 'pattern']);
-  });
-
-  test('aggregates errors on ctx.meta.validationErrors', () => {
-    const schema: JSONSchema = {
-      type: 'object',
-      properties: {
-        name: { type: 'string', pattern: '^[a-z]+$' },
-        age: { type: 'number', minimum: 0 },
-      },
-    };
-    const model = runWithValidation(schema, { name: 'UPPER', age: -1 });
-    const validationErrors = model.meta.validationErrors as Map<string, ValidationError[]>;
-    expect(validationErrors).toBeInstanceOf(Map);
-    expect(validationErrors.has('/name')).toBe(true);
-    expect(validationErrors.has('/age')).toBe(true);
-    expect(validationErrors.get('/name')![0].keyword).toBe('pattern');
-    expect(validationErrors.get('/age')![0].keyword).toBe('minimum');
-  });
-
-  test('meta.validationErrors is empty map when all data is valid', () => {
-    const schema: JSONSchema = {
-      type: 'object',
-      properties: {
-        name: { type: 'string' },
-      },
-    };
-    const model = runWithValidation(schema, { name: 'Alice' });
-    const validationErrors = model.meta.validationErrors as Map<string, ValidationError[]>;
-    expect(validationErrors).toBeInstanceOf(Map);
-    expect(validationErrors.size).toBe(0);
   });
 
   test('skips validation for null/undefined values', () => {
@@ -309,5 +283,78 @@ describe('createValidationMiddleware', () => {
     const model2 = runPipeline(schema, { a: 'world' }, config);
     expect(hasFieldErrors(model1.index.get('/a')!)).toBe(false);
     expect(hasFieldErrors(model2.index.get('/a')!)).toBe(false);
+  });
+});
+
+describe('createValidationEnrichment', () => {
+  function runWithEnrichment(schema: JSONSchema, data?: unknown) {
+    const config: PipelineConfig = {
+      enrichments: [createValidationEnrichment()],
+    };
+    return runPipeline(schema, data, config);
+  }
+
+  test('valid data produces no errors', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+      },
+    };
+    const model = runWithEnrichment(schema, { name: 'Alice' });
+    const node = model.index.get('/name')!;
+    expect(hasFieldErrors(node)).toBe(false);
+  });
+
+  test('type mismatch produces error', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        age: { type: 'number' },
+      },
+    };
+    const model = runWithEnrichment(schema, { age: 'not-a-number' });
+    const node = model.index.get('/age')!;
+    expect(hasFieldErrors(node)).toBe(true);
+    const errors = getFieldErrors(node);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].keyword).toBe('type');
+  });
+
+  test('skips null/undefined values', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string', minLength: 3 },
+      },
+    };
+    const model = runWithEnrichment(schema, {});
+    const node = model.index.get('/name')!;
+    expect(hasFieldErrors(node)).toBe(false);
+  });
+
+  test('skips empty string values', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string', minLength: 3 },
+      },
+    };
+    const model = runWithEnrichment(schema, { name: '' });
+    const node = model.index.get('/name')!;
+    expect(hasFieldErrors(node)).toBe(false);
+  });
+
+  test('constraint violations produce errors', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string', minLength: 3 },
+      },
+    };
+    const model = runWithEnrichment(schema, { name: 'AB' });
+    const node = model.index.get('/name')!;
+    expect(hasFieldErrors(node)).toBe(true);
+    expect(getFieldErrors(node)[0].keyword).toBe('minLength');
   });
 });
