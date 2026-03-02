@@ -187,15 +187,6 @@ describe('FormStore.setCombinatorIndex', () => {
     expect(store.getModel().index.has('/companyName')).toBe(true);
   });
 
-  test('setCombinatorIndex notifies model subscribers', () => {
-    const store = createFormStore(objectOneOfSchema, {});
-    const notifications: number[] = [];
-    store.subscribe(() => notifications.push(1));
-
-    store.setCombinatorIndex('', 0);
-    expect(notifications).toHaveLength(1);
-  });
-
   test('setCombinatorIndex notifies affected path subscribers', () => {
     const store = createFormStore(objectOneOfSchema, {});
     const notifications: string[] = [];

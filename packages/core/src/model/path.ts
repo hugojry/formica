@@ -13,7 +13,7 @@ export function parsePath(pointer: string): string[] {
 /** Build a JSON Pointer from segments. */
 export function buildPath(segments: string[]): string {
   if (segments.length === 0) return '';
-  return '/' + segments.map((s) => s.replace(/~/g, '~0').replace(/\//g, '~1')).join('/');
+  return `/${segments.map((s) => s.replace(/~/g, '~0').replace(/\//g, '~1')).join('/')}`;
 }
 
 /** Append a segment to a JSON Pointer. */

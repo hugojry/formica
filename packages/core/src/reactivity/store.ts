@@ -143,11 +143,6 @@ export function createFormStore(
     }
   }
 
-  function subscribe(listener: ModelSubscriber): () => void {
-    modelListeners.add(listener);
-    return () => modelListeners.delete(listener);
-  }
-
   function subscribePath(path: string, listener: PathSubscriber): () => void {
     if (!pathListeners.has(path)) pathListeners.set(path, new Set());
     pathListeners.get(path)!.add(listener);
@@ -164,7 +159,7 @@ export function createFormStore(
     return currentState;
   }
 
-  function subscribeState(listener: StateSubscriber): () => void {
+  function subscribe(listener: StateSubscriber): () => void {
     stateListeners.add(listener);
     return () => stateListeners.delete(listener);
   }
@@ -177,7 +172,6 @@ export function createFormStore(
     subscribe,
     subscribePath,
     getState,
-    subscribeState,
   };
 }
 

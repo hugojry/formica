@@ -38,25 +38,21 @@ describe('Field — cascade prevention', () => {
       formApi = form;
       const { Field } = form;
 
-      return createElement(
-        Field,
-        { path: '' },
-        () => {
-          rootRenderCount++;
-          return createElement(
-            'div',
-            null,
-            createElement(Field, { path: '/name' }, ({ value }) => {
-              nameRenderCount++;
-              return createElement('span', null, String(value));
-            }),
-            createElement(Field, { path: '/age' }, ({ value }) => {
-              ageRenderCount++;
-              return createElement('span', null, String(value));
-            }),
-          );
-        },
-      );
+      return createElement(Field, { path: '' }, () => {
+        rootRenderCount++;
+        return createElement(
+          'div',
+          null,
+          createElement(Field, { path: '/name' }, ({ value }) => {
+            nameRenderCount++;
+            return createElement('span', null, String(value));
+          }),
+          createElement(Field, { path: '/age' }, ({ value }) => {
+            ageRenderCount++;
+            return createElement('span', null, String(value));
+          }),
+        );
+      });
     }
 
     const container = document.createElement('div');
@@ -108,22 +104,19 @@ describe('Field — cascade prevention', () => {
       formApi = form;
       const { Field } = form;
 
-      return createElement(
-        Field,
-        { path: '' },
-        () =>
-          createElement(
-            'div',
-            null,
-            createElement(Field, { path: '/name' }, ({ value }) => {
-              nameRenderCount++;
-              return createElement('span', null, String(value));
-            }),
-            createElement(Field, { path: '/age' }, ({ value }) => {
-              ageRenderCount++;
-              return createElement('span', null, String(value));
-            }),
-          ),
+      return createElement(Field, { path: '' }, () =>
+        createElement(
+          'div',
+          null,
+          createElement(Field, { path: '/name' }, ({ value }) => {
+            nameRenderCount++;
+            return createElement('span', null, String(value));
+          }),
+          createElement(Field, { path: '/age' }, ({ value }) => {
+            ageRenderCount++;
+            return createElement('span', null, String(value));
+          }),
+        ),
       );
     }
 
@@ -177,6 +170,7 @@ describe('Field — cascade prevention', () => {
                 null,
                 createElement('span', null, String(value)),
                 createElement('button', {
+                  type: 'button',
                   'data-index': i,
                   onClick: () => {
                     const currentArr = getByPath(form.getData(), '/tags') as unknown[];

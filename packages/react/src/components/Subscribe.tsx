@@ -12,7 +12,7 @@ export function createSubscribeComponent(storeRef: { current: FormStore }) {
     const store = storeRef.current;
 
     const subscribe = useCallback(
-      (onStoreChange: () => void) => store.subscribeState(onStoreChange),
+      (onStoreChange: () => void) => store.subscribe(onStoreChange),
       [],
     );
 

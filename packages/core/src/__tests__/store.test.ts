@@ -46,15 +46,6 @@ describe('FormStore', () => {
     expect(model1).toBe(model2);
   });
 
-  test('subscribe notifies on data change', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const models: unknown[] = [];
-    store.subscribe((m) => models.push(m.data));
-    store.setData('/name', 'Bob');
-    expect(models).toHaveLength(1);
-    expect((models[0] as Record<string, unknown>).name).toBe('Bob');
-  });
-
   test('subscribePath notifies only affected path', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
     const nameValues: unknown[] = [];
@@ -66,16 +57,6 @@ describe('FormStore', () => {
     store.setData('/name', 'Bob');
     expect(nameValues).toEqual(['Bob']);
     expect(ageValues).toHaveLength(0);
-  });
-
-  test('unsubscribe works', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const values: unknown[] = [];
-    const unsub = store.subscribe((m) => values.push(m.data));
-    store.setData('/name', 'Bob');
-    unsub();
-    store.setData('/name', 'Charlie');
-    expect(values).toHaveLength(1);
   });
 
   test('setData deep path', () => {
@@ -220,12 +201,9 @@ describe('dirty path filtering', () => {
 
     store.subscribePath('/type', () => notifications.push('type'));
     store.subscribePath('/unrelated', () => notifications.push('unrelated'));
-    // Subscribe to model-level to verify structural change happens
-    store.subscribe(() => notifications.push('model'));
 
     store.setData('/type', 'business');
     expect(notifications).toContain('type');
-    expect(notifications).toContain('model');
     expect(notifications).not.toContain('unrelated');
   });
 
@@ -374,17 +352,21 @@ describe('container notification suppression', () => {
         mode: { type: 'string' },
       },
     };
-    const store = createFormStore(schema, { mode: 'light' }, {
-      enrichments: [
-        (node, ctx) => {
-          if (node.path === '') {
-            const data = ctx.data as Record<string, unknown>;
-            return { theme: data.mode === 'dark' ? 'dark-theme' : 'light-theme' };
-          }
-          return null;
-        },
-      ],
-    });
+    const store = createFormStore(
+      schema,
+      { mode: 'light' },
+      {
+        enrichments: [
+          (node, ctx) => {
+            if (node.path === '') {
+              const data = ctx.data as Record<string, unknown>;
+              return { theme: data.mode === 'dark' ? 'dark-theme' : 'light-theme' };
+            }
+            return null;
+          },
+        ],
+      },
+    );
     const notifications: string[] = [];
 
     store.subscribePath('', () => notifications.push('root'));
@@ -430,20 +412,20 @@ describe('FormState', () => {
     expect(store.getState().isDirty).toBe(false);
   });
 
-  test('subscribeState notifies on every data change', () => {
+  test('subscribe notifies on every data change', () => {
     const store = createFormStore(schema, { name: 'Alice' });
     const names: unknown[] = [];
-    store.subscribeState((s) => names.push((s.data as Record<string, unknown>).name));
+    store.subscribe((s) => names.push((s.data as Record<string, unknown>).name));
 
     store.setData('/name', 'Bob');
     store.setData('/name', 'Charlie');
     expect(names).toEqual(['Bob', 'Charlie']);
   });
 
-  test('subscribeState notifies when isDirty changes', () => {
+  test('subscribe notifies when isDirty changes', () => {
     const store = createFormStore(schema, { name: 'Alice' });
     const dirtyStates: boolean[] = [];
-    store.subscribeState((s) => dirtyStates.push(s.isDirty));
+    store.subscribe((s) => dirtyStates.push(s.isDirty));
 
     store.setData('/name', 'Bob');
     expect(dirtyStates).toEqual([true]);

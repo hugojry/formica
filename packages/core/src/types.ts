@@ -200,8 +200,7 @@ export interface FormStore {
   getData(): unknown;
   setData(path: string, value: unknown): void;
   setCombinatorIndex(path: string, index: number): void;
-  subscribe(listener: ModelSubscriber): () => void;
   subscribePath(path: string, listener: PathSubscriber): () => void;
   getState(): FormState;
-  subscribeState(listener: StateSubscriber): () => void;
+  subscribe(listener: StateSubscriber): () => void;
 }
