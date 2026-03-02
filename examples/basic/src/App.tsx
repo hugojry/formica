@@ -1,5 +1,5 @@
 import type { PipelineConfig } from '@formica/core';
-import { getFieldProps, hasEnum, hasType, PipelineStage } from '@formica/core';
+import { getByPath, getFieldProps, hasEnum, hasType, PipelineStage } from '@formica/core';
 import type { FormApi } from '@formica/react';
 import { useForm } from '@formica/react';
 import { createValidationMiddleware } from '@formica/validation';
@@ -86,7 +86,8 @@ function RenderField({ path, form }: { path: string; form: FormApi }) {
                   <button
                     type="button"
                     onClick={() => {
-                      const arr = (node.value as unknown[]).filter((_, idx) => idx !== i);
+                      const currentArr = getByPath(form.getData(), node.path) as unknown[];
+                      const arr = currentArr.filter((_, idx) => idx !== i);
                       form.setData(node.path, arr);
                     }}
                   >
@@ -97,7 +98,8 @@ function RenderField({ path, form }: { path: string; form: FormApi }) {
               <button
                 type="button"
                 onClick={() => {
-                  const arr = Array.isArray(node.value) ? [...(node.value as unknown[]), ''] : [''];
+                  const currentArr = getByPath(form.getData(), node.path) as unknown[] | undefined;
+                  const arr = Array.isArray(currentArr) ? [...currentArr, ''] : [''];
                   form.setData(node.path, arr);
                 }}
               >

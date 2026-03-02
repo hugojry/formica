@@ -146,11 +146,11 @@ describe('useField — selective re-rendering', () => {
     expect(renderCount.current).toBe(initialRenders);
   });
 
-  test('re-renders when a direct child changes', () => {
+  test('does NOT re-render when a direct child value changes', () => {
     const store = createFormStore(schema, {
       address: { street: '123 Main', city: 'Springfield' },
     });
-    const { result, renderCount } = renderHook(() => useField('/address', store));
+    const { renderCount } = renderHook(() => useField('/address', store));
 
     const initialRenders = renderCount.current;
 
@@ -158,12 +158,10 @@ describe('useField — selective re-rendering', () => {
       store.setData('/address/city', 'Shelbyville');
     });
 
-    expect(renderCount.current).toBe(initialRenders + 1);
-    const addressValue = result.current.node?.value as Record<string, unknown>;
-    expect(addressValue.city).toBe('Shelbyville');
+    expect(renderCount.current).toBe(initialRenders);
   });
 
-  test('re-renders when a deeply nested descendant changes', () => {
+  test('does NOT re-render when a deeply nested descendant value changes', () => {
     const deepSchema: JSONSchema = {
       type: 'object',
       properties: {
@@ -183,7 +181,7 @@ describe('useField — selective re-rendering', () => {
     const store = createFormStore(deepSchema, {
       level1: { level2: { level3: 'deep' } },
     });
-    const { result, renderCount } = renderHook(() => useField('/level1', store));
+    const { renderCount } = renderHook(() => useField('/level1', store));
 
     const initialRenders = renderCount.current;
 
@@ -191,16 +189,14 @@ describe('useField — selective re-rendering', () => {
       store.setData('/level1/level2/level3', 'deeper');
     });
 
-    expect(renderCount.current).toBe(initialRenders + 1);
-    const l1 = result.current.node?.value as any;
-    expect(l1.level2.level3).toBe('deeper');
+    expect(renderCount.current).toBe(initialRenders);
   });
 
-  test('re-renders when an array item descendant changes', () => {
+  test('does NOT re-render when an array item value changes', () => {
     const store = createFormStore(schema, {
       tags: ['a', 'b', 'c'],
     });
-    const { result, renderCount } = renderHook(() => useField('/tags', store));
+    const { renderCount } = renderHook(() => useField('/tags', store));
 
     const initialRenders = renderCount.current;
 
@@ -208,9 +204,55 @@ describe('useField — selective re-rendering', () => {
       store.setData('/tags/1', 'B');
     });
 
+    expect(renderCount.current).toBe(initialRenders);
+  });
+
+  test('object Field DOES re-render when conditional adds a child', () => {
+    const condSchema: JSONSchema = {
+      type: 'object',
+      properties: {
+        type: { type: 'string', enum: ['personal', 'business'] },
+      },
+      if: { properties: { type: { const: 'business' } } },
+      then: { properties: { company: { type: 'string' } } },
+      else: { properties: { firstName: { type: 'string' } } },
+    };
+    const store = createFormStore(condSchema, { type: 'personal' });
+    const { renderCount } = renderHook(() => useField('', store));
+
+    const initialRenders = renderCount.current;
+
+    act(() => {
+      store.setData('/type', 'business');
+    });
+
+    expect(renderCount.current).toBeGreaterThan(initialRenders);
+  });
+
+  test('array Field DOES re-render when item is added', () => {
+    const store = createFormStore(schema, { tags: ['a'] });
+    const { renderCount } = renderHook(() => useField('/tags', store));
+
+    const initialRenders = renderCount.current;
+
+    act(() => {
+      store.setData('/tags', ['a', 'b']);
+    });
+
     expect(renderCount.current).toBe(initialRenders + 1);
-    const tags = result.current.node?.value as string[];
-    expect(tags[1]).toBe('B');
+  });
+
+  test('array Field DOES re-render when item is removed', () => {
+    const store = createFormStore(schema, { tags: ['a', 'b'] });
+    const { renderCount } = renderHook(() => useField('/tags', store));
+
+    const initialRenders = renderCount.current;
+
+    act(() => {
+      store.setData('/tags', ['a']);
+    });
+
+    expect(renderCount.current).toBe(initialRenders + 1);
   });
 
   test('multiple rapid changes to unrelated fields do not cause re-renders', () => {

@@ -88,22 +88,7 @@ export function createFormStore(
     const prevModel = model;
     model = rebuild(newData);
 
-    // Notify path subscribers only for paths affected by the change
-    for (const [subPath, listeners] of pathListeners) {
-      if (!isPathAffected(subPath, dirtyPaths)) continue;
-
-      const prevNode = prevModel.index.get(subPath);
-      const newNode = model.index.get(subPath);
-
-      if (
-        prevNode !== newNode &&
-        (prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode))
-      ) {
-        for (const listener of listeners) {
-          if (newNode) listener(newNode);
-        }
-      }
-    }
+    notifyPathListeners(prevModel, dirtyPaths, path);
 
     // Notify model subscribers
     for (const listener of modelListeners) {
@@ -111,6 +96,34 @@ export function createFormStore(
     }
 
     updateState();
+  }
+
+  function notifyPathListeners(
+    prevModel: PipelineContext,
+    dirtyPaths: Set<string>,
+    changedPath?: string,
+  ): void {
+    for (const [subPath, listeners] of pathListeners) {
+      if (!isPathAffected(subPath, dirtyPaths)) continue;
+
+      const prevNode = prevModel.index.get(subPath);
+      const newNode = model.index.get(subPath);
+
+      if (prevNode !== newNode) {
+        const isContainer =
+          (newNode?.children?.length ?? 0) > 0 || (prevNode?.children?.length ?? 0) > 0;
+        const shouldNotify =
+          isContainer && subPath !== changedPath
+            ? nodeStructureChanged(prevNode, newNode)
+            : prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode);
+
+        if (shouldNotify) {
+          for (const listener of listeners) {
+            if (newNode) listener(newNode);
+          }
+        }
+      }
+    }
   }
 
   function setCombinatorIndex(path: string, index: number): void {
@@ -122,22 +135,7 @@ export function createFormStore(
     const prevModel = model;
     model = rebuild(model.data);
 
-    // Notify path subscribers for affected paths
-    for (const [subPath, listeners] of pathListeners) {
-      if (!isPathAffected(subPath, dirtyPaths)) continue;
-
-      const prevNode = prevModel.index.get(subPath);
-      const newNode = model.index.get(subPath);
-
-      if (
-        prevNode !== newNode &&
-        (prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode))
-      ) {
-        for (const listener of listeners) {
-          if (newNode) listener(newNode);
-        }
-      }
-    }
+    notifyPathListeners(prevModel, dirtyPaths);
 
     // Notify model subscribers
     for (const listener of modelListeners) {
@@ -186,8 +184,13 @@ export function createFormStore(
 function nodeStructureChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {
   if (!a || !b) return true;
   if (a.children.length !== b.children.length) return true;
+  for (let i = 0; i < a.children.length; i++) {
+    if (a.children[i].path !== b.children[i].path) return true;
+  }
   if (a.active !== b.active) return true;
   if (a.required !== b.required) return true;
+  if (a.readOnly !== b.readOnly) return true;
+  if (a.deprecated !== b.deprecated) return true;
   if (a.combinator?.activeIndex !== b.combinator?.activeIndex) return true;
   return false;
 }
