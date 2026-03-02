@@ -187,7 +187,6 @@ export interface PipelineConfig {
 // ─── Store ───
 
 export type PathSubscriber = (node: FieldNode) => void;
-export type ModelSubscriber = (model: PipelineContext) => void;
 export type StateSubscriber = (state: FormState) => void;
 
 export interface FormState {

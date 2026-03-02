@@ -61,7 +61,6 @@ export type {
   JSONSchema,
   JSONSchemaType,
   Middleware,
-  ModelSubscriber,
   PathSubscriber,
   PipelineConfig,
   PipelineContext,

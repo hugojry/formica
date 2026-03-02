@@ -5,7 +5,6 @@ import type {
   FormState,
   FormStore,
   JSONSchema,
-  ModelSubscriber,
   PathSubscriber,
   PipelineConfig,
   PipelineContext,
@@ -51,7 +50,6 @@ export function createFormStore(
   let model = rebuild(initialData);
   const initialSnapshot = structuredClone(model.data);
   let currentState: FormState = { data: model.data, isDirty: false };
-  const modelListeners = new Set<ModelSubscriber>();
   const pathListeners = new Map<string, Set<PathSubscriber>>();
   const stateListeners = new Set<StateSubscriber>();
 
@@ -90,11 +88,6 @@ export function createFormStore(
 
     notifyPathListeners(prevModel, dirtyPaths, path);
 
-    // Notify model subscribers
-    for (const listener of modelListeners) {
-      listener(model);
-    }
-
     updateState();
   }
 
@@ -112,12 +105,9 @@ export function createFormStore(
       if (prevNode !== newNode) {
         const isContainer =
           (newNode?.children?.length ?? 0) > 0 || (prevNode?.children?.length ?? 0) > 0;
-        const shouldNotify =
-          isContainer && subPath !== changedPath
-            ? childrenChanged(prevNode, newNode) || nodePropsChanged(prevNode, newNode)
-            : prevNode?.value !== newNode?.value || nodePropsChanged(prevNode, newNode);
+        const isContainerPath = isContainer && subPath !== changedPath;
 
-        if (shouldNotify) {
+        if (shouldNotifyPath(prevNode, newNode, isContainerPath)) {
           for (const listener of listeners) {
             if (newNode) listener(newNode);
           }
@@ -136,11 +126,6 @@ export function createFormStore(
     model = rebuild(model.data);
 
     notifyPathListeners(prevModel, dirtyPaths);
-
-    // Notify model subscribers
-    for (const listener of modelListeners) {
-      listener(model);
-    }
   }
 
   function subscribePath(path: string, listener: PathSubscriber): () => void {
@@ -175,6 +160,18 @@ export function createFormStore(
   };
 }
 
+function shouldNotifyPath(
+  prevNode: FieldNode | undefined,
+  newNode: FieldNode | undefined,
+  isContainerPath: boolean,
+): boolean {
+  if (!prevNode || !newNode) return true;
+  if (isContainerPath) {
+    return childrenChanged(prevNode, newNode) || nodePropsChanged(prevNode, newNode);
+  }
+  return prevNode.value !== newNode.value || nodePropsChanged(prevNode, newNode);
+}
+
 function childrenChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {
   if (!a || !b) return true;
   if (a.children.length !== b.children.length) return true;
@@ -184,6 +181,10 @@ function childrenChanged(a: FieldNode | undefined, b: FieldNode | undefined): bo
   return false;
 }
 
+// Blocklist approach: skip structural keys that are either handled separately
+// (value, children) or never change for the same path (path, schema, type).
+// This allows enrichment keys (from the FieldNode index signature) to trigger
+// re-renders without needing an explicit allowlist.
 const SKIP_KEYS = new Set(['path', 'schema', 'type', 'value', 'children']);
 
 function nodePropsChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {

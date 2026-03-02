@@ -1,4 +1,4 @@
-import { isDescendant, parentPath } from '../model/path.js';
+import { parentPath } from '../model/path.js';
 
 /** Compute the set of dirty paths given a changed path and a conditional dependency map. */
 export function computeDirtyPaths(
@@ -34,7 +34,7 @@ export function isPathAffected(path: string, dirtyPaths: Set<string>): boolean {
 
   // Check if any dirty path is a descendant (something changed beneath this path)
   for (const dirty of dirtyPaths) {
-    if (isDescendant(path, dirty)) return true;
+    if (dirty.startsWith(path + '/')) return true;
   }
 
   return false;
