@@ -25,17 +25,7 @@ export function useField(path: string, store: FormStore): UseFieldReturn {
     [store, path],
   );
 
-  const getSnapshot = useCallback(() => {
-    const currentNode = store.getModel().index.get(path);
-    if (!nodeRef.current || !currentNode) {
-      nodeRef.current = currentNode;
-    } else if (nodeRef.current.value !== currentNode.value) {
-      // Catches array re-indexing where the path now points to different data
-      // without a direct store notification for this path.
-      nodeRef.current = currentNode;
-    }
-    return nodeRef.current;
-  }, [store, path]);
+  const getSnapshot = useCallback(() => nodeRef.current, []);
 
   const node = useSyncExternalStore(subscribe, getSnapshot);
 

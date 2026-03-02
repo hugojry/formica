@@ -97,7 +97,7 @@ export function createFormStore(
     changedPath?: string,
   ): void {
     for (const [subPath, listeners] of pathListeners) {
-      if (!isPathAffected(subPath, dirtyPaths)) continue;
+      if (!isPathAffected(subPath, dirtyPaths, changedPath)) continue;
 
       const prevNode = prevModel.index.get(subPath);
       const newNode = model.index.get(subPath);

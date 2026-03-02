@@ -376,6 +376,52 @@ describe('container notification suppression', () => {
   });
 });
 
+describe('array re-indexing notifications', () => {
+  const schema: JSONSchema = {
+    type: 'object',
+    properties: {
+      tags: { type: 'array', items: { type: 'string' } },
+    },
+  };
+
+  test('shifted items ARE notified', () => {
+    const store = createFormStore(schema, { tags: ['a', 'b', 'c', 'd'] });
+    const notifications: string[] = [];
+
+    store.subscribePath('/tags/1', () => notifications.push('tags/1'));
+    store.subscribePath('/tags/2', () => notifications.push('tags/2'));
+
+    // Remove first element: ['a','b','c','d'] → ['b','c','d']
+    // /tags/1 was 'b', now 'c' → notified
+    // /tags/2 was 'c', now 'd' → notified
+    store.setData('/tags', ['a', 'c', 'd']);
+    expect(notifications).toContain('tags/1');
+    expect(notifications).toContain('tags/2');
+  });
+
+  test('unshifted items are NOT notified', () => {
+    const store = createFormStore(schema, { tags: ['a', 'b', 'c', 'd'] });
+    const notifications: string[] = [];
+
+    store.subscribePath('/tags/0', () => notifications.push('tags/0'));
+
+    // Remove 'b': ['a','b','c','d'] → ['a','c','d']
+    // /tags/0 stays 'a' → not notified
+    store.setData('/tags', ['a', 'c', 'd']);
+    expect(notifications).not.toContain('tags/0');
+  });
+
+  test('container IS notified when children count changes', () => {
+    const store = createFormStore(schema, { tags: ['a', 'b', 'c', 'd'] });
+    const notifications: string[] = [];
+
+    store.subscribePath('/tags', () => notifications.push('tags'));
+
+    store.setData('/tags', ['a', 'c', 'd']);
+    expect(notifications).toContain('tags');
+  });
+});
+
 describe('FormState', () => {
   const schema: JSONSchema = {
     type: 'object',

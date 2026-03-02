@@ -29,12 +29,23 @@ export function computeDirtyPaths(
 }
 
 /** Check if a path is dirty or has a dirty descendant. */
-export function isPathAffected(path: string, dirtyPaths: Set<string>): boolean {
+export function isPathAffected(
+  path: string,
+  dirtyPaths: Set<string>,
+  changedPath?: string,
+): boolean {
   if (dirtyPaths.has(path)) return true;
 
   // Check if any dirty path is a descendant (something changed beneath this path)
   for (const dirty of dirtyPaths) {
     if (dirty.startsWith(path + '/')) return true;
+  }
+
+  // Subscriber is a descendant of the directly changed path (e.g. /tags/0
+  // when /tags was replaced wholesale). The shouldNotifyPath filter still
+  // suppresses notifications where the value didn't actually shift.
+  if (changedPath !== undefined && changedPath !== '' && path.startsWith(changedPath + '/')) {
+    return true;
   }
 
   return false;
