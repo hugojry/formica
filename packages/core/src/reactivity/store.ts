@@ -114,8 +114,8 @@ export function createFormStore(
           (newNode?.children?.length ?? 0) > 0 || (prevNode?.children?.length ?? 0) > 0;
         const shouldNotify =
           isContainer && subPath !== changedPath
-            ? nodeStructureChanged(prevNode, newNode)
-            : prevNode?.value !== newNode?.value || nodeStructureChanged(prevNode, newNode);
+            ? childrenChanged(prevNode, newNode) || nodePropsChanged(prevNode, newNode)
+            : prevNode?.value !== newNode?.value || nodePropsChanged(prevNode, newNode);
 
         if (shouldNotify) {
           for (const listener of listeners) {
@@ -181,16 +181,27 @@ export function createFormStore(
   };
 }
 
-function nodeStructureChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {
+function childrenChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {
   if (!a || !b) return true;
   if (a.children.length !== b.children.length) return true;
   for (let i = 0; i < a.children.length; i++) {
     if (a.children[i].path !== b.children[i].path) return true;
   }
-  if (a.active !== b.active) return true;
-  if (a.required !== b.required) return true;
-  if (a.readOnly !== b.readOnly) return true;
-  if (a.deprecated !== b.deprecated) return true;
-  if (a.combinator?.activeIndex !== b.combinator?.activeIndex) return true;
+  return false;
+}
+
+const SKIP_KEYS = new Set(['path', 'schema', 'type', 'value', 'children']);
+
+function nodePropsChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {
+  if (!a || !b) return true;
+  const aObj = a as Record<string, unknown>;
+  const bObj = b as Record<string, unknown>;
+  const aKeys = Object.keys(aObj);
+  const bKeys = Object.keys(bObj);
+  if (aKeys.length !== bKeys.length) return true;
+  for (const key of aKeys) {
+    if (SKIP_KEYS.has(key)) continue;
+    if (!deepEqual(aObj[key], bObj[key])) return true;
+  }
   return false;
 }

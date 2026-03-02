@@ -354,7 +354,6 @@ describe('container notification suppression', () => {
   });
 
   test('container IS notified when required flag changes', () => {
-    // We simulate this by checking nodeStructureChanged directly
     // In a real scenario, required changes come from conditional evaluation
     const schema: JSONSchema = {
       type: 'object',
@@ -363,9 +362,35 @@ describe('container notification suppression', () => {
       },
     };
     const store = createFormStore(schema, { name: 'Alice' });
-    // Just verify the store can be created — the nodeStructureChanged logic
+    // Just verify the store can be created — nodePropsChanged logic
     // is tested via the function itself; flag changes trigger notification
     expect(store.getModel().index.get('/name')).toBeDefined();
+  });
+
+  test('container IS notified when enrichment key changes', () => {
+    const schema: JSONSchema = {
+      type: 'object',
+      properties: {
+        mode: { type: 'string' },
+      },
+    };
+    const store = createFormStore(schema, { mode: 'light' }, {
+      enrichments: [
+        (node, ctx) => {
+          if (node.path === '') {
+            const data = ctx.data as Record<string, unknown>;
+            return { theme: data.mode === 'dark' ? 'dark-theme' : 'light-theme' };
+          }
+          return null;
+        },
+      ],
+    });
+    const notifications: string[] = [];
+
+    store.subscribePath('', () => notifications.push('root'));
+
+    store.setData('/mode', 'dark');
+    expect(notifications).toContain('root');
   });
 });
 
