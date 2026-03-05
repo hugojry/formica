@@ -1,6 +1,6 @@
 import type { EnrichFn, JSONSchema } from '@formica/core';
 import type { ValidateFunction } from 'ajv';
-import Ajv from 'ajv';
+import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 
 export function createValidationEnrichment(): EnrichFn {

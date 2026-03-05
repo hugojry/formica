@@ -1,6 +1,6 @@
 import type { JSONSchema, Middleware } from '@formica/core';
 import type { ValidateFunction } from 'ajv';
-import Ajv from 'ajv';
+import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import type { ValidationError } from './errors.js';
 
