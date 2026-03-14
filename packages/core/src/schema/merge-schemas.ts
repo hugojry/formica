@@ -1,35 +1,35 @@
-import type { JSONSchema } from '../types.js';
+import type { JSONSchema } from '../types.js'
 
 export function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
-  const result: JSONSchema = { ...a };
+  const result: JSONSchema = { ...a }
 
   // Merge type (intersect)
   if (b.type) {
     if (result.type) {
-      const aTypes = Array.isArray(result.type) ? result.type : [result.type];
-      const bTypes = Array.isArray(b.type) ? b.type : [b.type];
-      const intersection = aTypes.filter((t) => bTypes.includes(t));
-      result.type = intersection.length === 1 ? intersection[0] : (intersection as any);
+      const aTypes = Array.isArray(result.type) ? result.type : [result.type]
+      const bTypes = Array.isArray(b.type) ? b.type : [b.type]
+      const intersection = aTypes.filter((t) => bTypes.includes(t))
+      result.type = intersection.length === 1 ? intersection[0] : (intersection as any)
     } else {
-      result.type = b.type;
+      result.type = b.type
     }
   }
 
   // Merge properties
   if (b.properties) {
-    result.properties ??= {};
+    result.properties ??= {}
     for (const [key, val] of Object.entries(b.properties)) {
       if (result.properties[key]) {
-        result.properties[key] = mergeSchemas(result.properties[key], val);
+        result.properties[key] = mergeSchemas(result.properties[key], val)
       } else {
-        result.properties[key] = val;
+        result.properties[key] = val
       }
     }
   }
 
   // Merge required (union)
   if (b.required) {
-    result.required = [...new Set([...(result.required ?? []), ...b.required])];
+    result.required = [...new Set([...(result.required ?? []), ...b.required])]
   }
 
   // Merge numeric constraints (tightest wins)
@@ -42,7 +42,7 @@ export function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
   ] as const) {
     if (b[k] !== undefined) {
       result[k] =
-        result[k] !== undefined ? Math.max(result[k] as number, b[k] as number) : (b[k] as any);
+        result[k] !== undefined ? Math.max(result[k] as number, b[k] as number) : (b[k] as any)
     }
   }
   for (const k of [
@@ -54,7 +54,7 @@ export function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
   ] as const) {
     if (b[k] !== undefined) {
       result[k] =
-        result[k] !== undefined ? Math.min(result[k] as number, b[k] as number) : (b[k] as any);
+        result[k] !== undefined ? Math.min(result[k] as number, b[k] as number) : (b[k] as any)
     }
   }
 
@@ -73,23 +73,23 @@ export function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
     'uniqueItems',
   ] as const) {
     if (b[k] !== undefined) {
-      (result as any)[k] = b[k];
+      ;(result as any)[k] = b[k]
     }
   }
 
   // Enum (intersect)
   if (b.enum) {
     if (result.enum) {
-      result.enum = result.enum.filter((v) => b.enum!.includes(v));
+      result.enum = result.enum.filter((v) => b.enum!.includes(v))
     } else {
-      result.enum = b.enum;
+      result.enum = b.enum
     }
   }
 
   // Composition keywords — carry over
   for (const k of ['oneOf', 'anyOf', 'if', 'then', 'else', 'not'] as const) {
     if (b[k] !== undefined && result[k] === undefined) {
-      (result as any)[k] = b[k];
+      ;(result as any)[k] = b[k]
     }
   }
 
@@ -98,7 +98,7 @@ export function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
     result.items =
       result.items && typeof result.items === 'object'
         ? mergeSchemas(result.items as JSONSchema, b.items as JSONSchema)
-        : b.items;
+        : b.items
   }
 
   // additionalProperties
@@ -110,29 +110,29 @@ export function mergeSchemas(a: JSONSchema, b: JSONSchema): JSONSchema {
       result.additionalProperties = mergeSchemas(
         result.additionalProperties,
         b.additionalProperties,
-      );
+      )
     } else {
-      result.additionalProperties = b.additionalProperties;
+      result.additionalProperties = b.additionalProperties
     }
   }
 
   // dependentSchemas
   if (b.dependentSchemas) {
-    result.dependentSchemas ??= {};
+    result.dependentSchemas ??= {}
     for (const [k, v] of Object.entries(b.dependentSchemas)) {
       result.dependentSchemas[k] = result.dependentSchemas[k]
         ? mergeSchemas(result.dependentSchemas[k], v)
-        : v;
+        : v
     }
   }
 
   // dependentRequired
   if (b.dependentRequired) {
-    result.dependentRequired ??= {};
+    result.dependentRequired ??= {}
     for (const [k, v] of Object.entries(b.dependentRequired)) {
-      result.dependentRequired[k] = [...new Set([...(result.dependentRequired[k] ?? []), ...v])];
+      result.dependentRequired[k] = [...new Set([...(result.dependentRequired[k] ?? []), ...v])]
     }
   }
 
-  return result;
+  return result
 }

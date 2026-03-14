@@ -1,4 +1,4 @@
-import type { JSONSchema, PipelineContext, PipelineStage } from '../types.js';
+import type { JSONSchema, PipelineContext, PipelineStage } from '../types.js'
 
 export function createContext(schema: JSONSchema, data: unknown): PipelineContext {
   return {
@@ -9,5 +9,5 @@ export function createContext(schema: JSONSchema, data: unknown): PipelineContex
     conditionalDeps: new Map(),
     stage: 'EVALUATE_CONDITIONALS' as PipelineStage,
     extensions: {},
-  };
+  }
 }

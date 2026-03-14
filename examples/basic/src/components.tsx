@@ -1,20 +1,20 @@
-import type { FieldNode } from '@formica/core';
+import type { FieldNode } from '@formica/core'
 import {
   getCheckboxProps,
   getFieldProps,
   getNumberInputProps,
   getSelectProps,
   getTextInputProps,
-} from '@formica/core';
-import type { ValidationError } from '@formica/validation';
-import { getFieldErrors } from '@formica/validation';
+} from '@formica/core'
+import type { ValidationError } from '@formica/validation'
+import { getFieldErrors } from '@formica/validation'
 
 interface ErrorListProps {
-  errors?: ValidationError[];
+  errors?: ValidationError[]
 }
 
 function ErrorList({ errors }: ErrorListProps) {
-  if (!errors || errors.length === 0) return null;
+  if (!errors || errors.length === 0) return null
   return (
     <>
       {errors.map((err) => (
@@ -23,15 +23,15 @@ function ErrorList({ errors }: ErrorListProps) {
         </p>
       ))}
     </>
-  );
+  )
 }
 
 interface FieldWrapperProps {
-  label: string;
-  required?: boolean;
-  description?: string;
-  children: React.ReactNode;
-  errors?: ValidationError[];
+  label: string
+  required?: boolean
+  description?: string
+  children: React.ReactNode
+  errors?: ValidationError[]
 }
 
 function FieldWrapper({ label, required, description, children, errors }: FieldWrapperProps) {
@@ -47,20 +47,20 @@ function FieldWrapper({ label, required, description, children, errors }: FieldW
       {children}
       <ErrorList errors={errors} />
     </div>
-  );
+  )
 }
 
 // ─── Leaf Components ───
 
 interface FieldComponentProps {
-  node: FieldNode;
-  onChange: (value: unknown) => void;
+  node: FieldNode
+  onChange: (value: unknown) => void
 }
 
 export function TextInput({ node, onChange }: FieldComponentProps) {
-  const field = getFieldProps(node);
-  const input = getTextInputProps(node);
-  const errors = getFieldErrors(node);
+  const field = getFieldProps(node)
+  const input = getTextInputProps(node)
+  const errors = getFieldErrors(node)
   return (
     <FieldWrapper
       label={field.label}
@@ -79,13 +79,13 @@ export function TextInput({ node, onChange }: FieldComponentProps) {
         style={{ width: '100%', padding: '4px 8px', boxSizing: 'border-box' }}
       />
     </FieldWrapper>
-  );
+  )
 }
 
 export function NumberInput({ node, onChange }: FieldComponentProps) {
-  const field = getFieldProps(node);
-  const input = getNumberInputProps(node);
-  const errors = getFieldErrors(node);
+  const field = getFieldProps(node)
+  const input = getNumberInputProps(node)
+  const errors = getFieldErrors(node)
   return (
     <FieldWrapper
       label={field.label}
@@ -97,8 +97,8 @@ export function NumberInput({ node, onChange }: FieldComponentProps) {
         type="number"
         value={input.value != null ? String(input.value) : ''}
         onChange={(e) => {
-          const v = e.target.value;
-          onChange(v === '' ? undefined : Number(v));
+          const v = e.target.value
+          onChange(v === '' ? undefined : Number(v))
         }}
         readOnly={field.readOnly}
         min={input.min}
@@ -107,13 +107,13 @@ export function NumberInput({ node, onChange }: FieldComponentProps) {
         style={{ width: '100%', padding: '4px 8px', boxSizing: 'border-box' }}
       />
     </FieldWrapper>
-  );
+  )
 }
 
 export function Checkbox({ node, onChange }: FieldComponentProps) {
-  const field = getFieldProps(node);
-  const input = getCheckboxProps(node);
-  const errors = getFieldErrors(node);
+  const field = getFieldProps(node)
+  const input = getCheckboxProps(node)
+  const errors = getFieldErrors(node)
   return (
     <div style={{ marginBottom: 8 }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
@@ -131,13 +131,13 @@ export function Checkbox({ node, onChange }: FieldComponentProps) {
       ) : null}
       <ErrorList errors={errors} />
     </div>
-  );
+  )
 }
 
 export function Select({ node, onChange }: FieldComponentProps) {
-  const field = getFieldProps(node);
-  const input = getSelectProps(node);
-  const errors = getFieldErrors(node);
+  const field = getFieldProps(node)
+  const input = getSelectProps(node)
+  const errors = getFieldErrors(node)
   return (
     <FieldWrapper
       label={field.label}
@@ -148,9 +148,9 @@ export function Select({ node, onChange }: FieldComponentProps) {
       <select
         value={input.value != null ? String(input.value) : ''}
         onChange={(e) => {
-          const v = e.target.value;
-          const match = input.options.find((o) => String(o.value) === v);
-          onChange(match !== undefined ? match.value : v);
+          const v = e.target.value
+          const match = input.options.find((o) => String(o.value) === v)
+          onChange(match !== undefined ? match.value : v)
         }}
         disabled={field.readOnly}
         style={{ width: '100%', padding: '4px 8px', boxSizing: 'border-box' }}
@@ -163,5 +163,5 @@ export function Select({ node, onChange }: FieldComponentProps) {
         ))}
       </select>
     </FieldWrapper>
-  );
+  )
 }

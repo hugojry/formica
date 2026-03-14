@@ -1,16 +1,16 @@
-import type { PipelineConfig } from '@formica/core';
-import { getByPath, getFieldProps, hasEnum, hasType, PipelineStage } from '@formica/core';
-import type { FormApi } from '@formica/react';
-import { useForm } from '@formica/react';
-import { createValidationMiddleware } from '@formica/validation';
-import { Checkbox, NumberInput, Select, TextInput } from './components';
-import { userProfileSchema } from './schema';
+import type { PipelineConfig } from '@formica/core'
+import { getByPath, getFieldProps, hasEnum, hasType, PipelineStage } from '@formica/core'
+import type { FormApi } from '@formica/react'
+import { useForm } from '@formica/react'
+import { createValidationMiddleware } from '@formica/validation'
+import { Checkbox, NumberInput, Select, TextInput } from './components'
+import { userProfileSchema } from './schema'
 
 const pipelineConfig: PipelineConfig = {
   middleware: {
     [PipelineStage.FINALIZE]: [createValidationMiddleware()],
   },
-};
+}
 
 const initialData = {
   firstName: 'Jane',
@@ -19,27 +19,27 @@ const initialData = {
   age: 28,
   active: true,
   tags: ['developer'],
-};
+}
 
 function RenderField({ path, form }: { path: string; form: FormApi }) {
   return (
     <form.Field path={path}>
       {(field) => {
-        const { node } = field;
-        if (!node.active) return null;
+        const { node } = field
+        if (!node.active) return null
 
         // Combinator (oneOf/anyOf)
         if (node.combinator) {
-          const { combinator } = node;
-          const fp = getFieldProps(node);
+          const { combinator } = node
+          const fp = getFieldProps(node)
           return (
             <div style={{ marginBottom: 8, border: '1px solid #ddd', padding: 8, borderRadius: 4 }}>
               <span style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{fp.label}</span>
               <select
                 value={combinator.activeIndex ?? ''}
                 onChange={(e) => {
-                  const idx = e.target.value === '' ? 0 : Number(e.target.value);
-                  field.setCombinatorIndex(node.path, idx);
+                  const idx = e.target.value === '' ? 0 : Number(e.target.value)
+                  field.setCombinatorIndex(node.path, idx)
                 }}
                 style={{
                   width: '100%',
@@ -58,12 +58,12 @@ function RenderField({ path, form }: { path: string; form: FormApi }) {
                 <RenderField key={child.path} path={child.path} form={form} />
               ))}
             </div>
-          );
+          )
         }
 
         // Array
         if (hasType(node, 'array')) {
-          const fp = getFieldProps(node);
+          const fp = getFieldProps(node)
           return (
             <div style={{ marginBottom: 8 }}>
               <span style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{fp.label}</span>
@@ -86,9 +86,9 @@ function RenderField({ path, form }: { path: string; form: FormApi }) {
                   <button
                     type="button"
                     onClick={() => {
-                      const currentArr = getByPath(form.getData(), node.path) as unknown[];
-                      const arr = currentArr.filter((_, idx) => idx !== i);
-                      form.setData(node.path, arr);
+                      const currentArr = getByPath(form.getData(), node.path) as unknown[]
+                      const arr = currentArr.filter((_, idx) => idx !== i)
+                      form.setData(node.path, arr)
                     }}
                   >
                     Remove
@@ -98,20 +98,20 @@ function RenderField({ path, form }: { path: string; form: FormApi }) {
               <button
                 type="button"
                 onClick={() => {
-                  const currentArr = getByPath(form.getData(), node.path) as unknown[] | undefined;
-                  const arr = Array.isArray(currentArr) ? [...currentArr, ''] : [''];
-                  form.setData(node.path, arr);
+                  const currentArr = getByPath(form.getData(), node.path) as unknown[] | undefined
+                  const arr = Array.isArray(currentArr) ? [...currentArr, ''] : ['']
+                  form.setData(node.path, arr)
                 }}
               >
                 Add
               </button>
             </div>
-          );
+          )
         }
 
         // Object (nested)
         if (hasType(node, 'object')) {
-          const fp = getFieldProps(node);
+          const fp = getFieldProps(node)
           return (
             <fieldset
               style={{ marginBottom: 8, border: '1px solid #ddd', padding: 8, borderRadius: 4 }}
@@ -121,27 +121,27 @@ function RenderField({ path, form }: { path: string; form: FormApi }) {
                 <RenderField key={child.path} path={child.path} form={form} />
               ))}
             </fieldset>
-          );
+          )
         }
 
         // Leaf fields
         if (hasEnum(node)) {
-          return <Select node={node} onChange={field.handleChange} />;
+          return <Select node={node} onChange={field.handleChange} />
         }
         if (hasType(node, 'string')) {
-          return <TextInput node={node} onChange={field.handleChange} />;
+          return <TextInput node={node} onChange={field.handleChange} />
         }
         if (hasType(node, 'number') || hasType(node, 'integer')) {
-          return <NumberInput node={node} onChange={field.handleChange} />;
+          return <NumberInput node={node} onChange={field.handleChange} />
         }
         if (hasType(node, 'boolean')) {
-          return <Checkbox node={node} onChange={field.handleChange} />;
+          return <Checkbox node={node} onChange={field.handleChange} />
         }
 
-        return null;
+        return null
       }}
     </form.Field>
-  );
+  )
 }
 
 function RenderRoot({ form }: { form: FormApi }) {
@@ -155,7 +155,7 @@ function RenderRoot({ form }: { form: FormApi }) {
         </>
       )}
     </form.Field>
-  );
+  )
 }
 
 function DataPreview({ form }: { form: FormApi }) {
@@ -168,7 +168,7 @@ function DataPreview({ form }: { form: FormApi }) {
         </div>
       )}
     </form.Subscribe>
-  );
+  )
 }
 
 export function App() {
@@ -176,7 +176,7 @@ export function App() {
     schema: userProfileSchema,
     initialData,
     config: pipelineConfig,
-  });
+  })
 
   return (
     <>
@@ -190,5 +190,5 @@ export function App() {
         </div>
       </div>
     </>
-  );
+  )
 }

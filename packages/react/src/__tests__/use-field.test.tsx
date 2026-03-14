@@ -1,8 +1,8 @@
-import { describe, expect, test } from 'bun:test';
-import type { JSONSchema } from '@formica/core';
-import { createFormStore } from '@formica/core';
-import { useField } from '../hooks/use-field.js';
-import { act, renderHook } from './helpers.js';
+import { describe, expect, test } from 'bun:test'
+import type { JSONSchema } from '@formica/core'
+import { createFormStore } from '@formica/core'
+import { useField } from '../hooks/use-field.js'
+import { act, renderHook } from './helpers.js'
 
 const schema: JSONSchema = {
   type: 'object',
@@ -21,145 +21,145 @@ const schema: JSONSchema = {
       items: { type: 'string' },
     },
   },
-};
+}
 
 describe('useField', () => {
   test('returns correct node for path', () => {
-    const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    const { result } = renderHook(() => useField('/name', store));
+    const store = createFormStore(schema, { name: 'Alice', age: 30 })
+    const { result } = renderHook(() => useField('/name', store))
 
-    expect(result.current.node?.value).toBe('Alice');
-    expect(result.current.node?.path).toBe('/name');
-  });
+    expect(result.current.node?.value).toBe('Alice')
+    expect(result.current.node?.path).toBe('/name')
+  })
 
   test('returns undefined for missing path', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const { result } = renderHook(() => useField('/nonexistent', store));
+    const store = createFormStore(schema, { name: 'Alice' })
+    const { result } = renderHook(() => useField('/nonexistent', store))
 
-    expect(result.current.node).toBeUndefined();
-  });
+    expect(result.current.node).toBeUndefined()
+  })
 
   test('re-renders when own path changes', () => {
-    const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    const { result } = renderHook(() => useField('/name', store));
+    const store = createFormStore(schema, { name: 'Alice', age: 30 })
+    const { result } = renderHook(() => useField('/name', store))
 
     act(() => {
-      store.setData('/name', 'Bob');
-    });
+      store.setData('/name', 'Bob')
+    })
 
-    expect(result.current.node?.value).toBe('Bob');
-  });
+    expect(result.current.node?.value).toBe('Bob')
+  })
 
   test('onChange wires to setData', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const { result } = renderHook(() => useField('/name', store));
+    const store = createFormStore(schema, { name: 'Alice' })
+    const { result } = renderHook(() => useField('/name', store))
 
     act(() => {
-      result.current.onChange('Carol');
-    });
+      result.current.onChange('Carol')
+    })
 
-    expect(store.getModel().index.get('/name')?.value).toBe('Carol');
-    expect(result.current.node?.value).toBe('Carol');
-  });
-});
+    expect(store.getModel().index.get('/name')?.value).toBe('Carol')
+    expect(result.current.node?.value).toBe('Carol')
+  })
+})
 
 describe('useField — selective re-rendering', () => {
   test('does not re-render when a sibling field changes', () => {
-    const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    const { result, renderCount } = renderHook(() => useField('/name', store));
+    const store = createFormStore(schema, { name: 'Alice', age: 30 })
+    const { result, renderCount } = renderHook(() => useField('/name', store))
 
-    const initialRenders = renderCount.current;
-    expect(result.current.node?.value).toBe('Alice');
+    const initialRenders = renderCount.current
+    expect(result.current.node?.value).toBe('Alice')
 
     act(() => {
-      store.setData('/age', 31);
-    });
+      store.setData('/age', 31)
+    })
 
-    expect(renderCount.current).toBe(initialRenders);
-    expect(result.current.node?.value).toBe('Alice');
-  });
+    expect(renderCount.current).toBe(initialRenders)
+    expect(result.current.node?.value).toBe('Alice')
+  })
 
   test('does not re-render when a deeply nested unrelated field changes', () => {
     const store = createFormStore(schema, {
       name: 'Alice',
       address: { street: '123 Main', city: 'Springfield' },
-    });
-    const { result, renderCount } = renderHook(() => useField('/name', store));
+    })
+    const { result, renderCount } = renderHook(() => useField('/name', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/address/city', 'Shelbyville');
-    });
+      store.setData('/address/city', 'Shelbyville')
+    })
 
-    expect(renderCount.current).toBe(initialRenders);
-    expect(result.current.node?.value).toBe('Alice');
-  });
+    expect(renderCount.current).toBe(initialRenders)
+    expect(result.current.node?.value).toBe('Alice')
+  })
 
   test('does not re-render when an array sibling is mutated', () => {
     const store = createFormStore(schema, {
       name: 'Alice',
       tags: ['a', 'b'],
-    });
-    const { result, renderCount } = renderHook(() => useField('/name', store));
+    })
+    const { result, renderCount } = renderHook(() => useField('/name', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/tags', ['a', 'b', 'c']);
-    });
+      store.setData('/tags', ['a', 'b', 'c'])
+    })
 
-    expect(renderCount.current).toBe(initialRenders);
-    expect(result.current.node?.value).toBe('Alice');
-  });
+    expect(renderCount.current).toBe(initialRenders)
+    expect(result.current.node?.value).toBe('Alice')
+  })
 
   test('re-renders only the affected field among multiple subscribers', () => {
-    const store = createFormStore(schema, { name: 'Alice', age: 30 });
+    const store = createFormStore(schema, { name: 'Alice', age: 30 })
 
-    const nameHook = renderHook(() => useField('/name', store));
-    const ageHook = renderHook(() => useField('/age', store));
+    const nameHook = renderHook(() => useField('/name', store))
+    const ageHook = renderHook(() => useField('/age', store))
 
-    const nameRenders = nameHook.renderCount.current;
-    const ageRenders = ageHook.renderCount.current;
+    const nameRenders = nameHook.renderCount.current
+    const ageRenders = ageHook.renderCount.current
 
     act(() => {
-      store.setData('/name', 'Bob');
-    });
+      store.setData('/name', 'Bob')
+    })
 
-    expect(nameHook.renderCount.current).toBe(nameRenders + 1);
-    expect(nameHook.result.current.node?.value).toBe('Bob');
+    expect(nameHook.renderCount.current).toBe(nameRenders + 1)
+    expect(nameHook.result.current.node?.value).toBe('Bob')
 
-    expect(ageHook.renderCount.current).toBe(ageRenders);
-    expect(ageHook.result.current.node?.value).toBe(30);
-  });
+    expect(ageHook.renderCount.current).toBe(ageRenders)
+    expect(ageHook.result.current.node?.value).toBe(30)
+  })
 
   test('does not re-render when value is set to the same identity', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const { renderCount } = renderHook(() => useField('/name', store));
+    const store = createFormStore(schema, { name: 'Alice' })
+    const { renderCount } = renderHook(() => useField('/name', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/name', 'Alice');
-    });
+      store.setData('/name', 'Alice')
+    })
 
-    expect(renderCount.current).toBe(initialRenders);
-  });
+    expect(renderCount.current).toBe(initialRenders)
+  })
 
   test('does NOT re-render when a direct child value changes', () => {
     const store = createFormStore(schema, {
       address: { street: '123 Main', city: 'Springfield' },
-    });
-    const { renderCount } = renderHook(() => useField('/address', store));
+    })
+    const { renderCount } = renderHook(() => useField('/address', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/address/city', 'Shelbyville');
-    });
+      store.setData('/address/city', 'Shelbyville')
+    })
 
-    expect(renderCount.current).toBe(initialRenders);
-  });
+    expect(renderCount.current).toBe(initialRenders)
+  })
 
   test('does NOT re-render when a deeply nested descendant value changes', () => {
     const deepSchema: JSONSchema = {
@@ -177,35 +177,35 @@ describe('useField — selective re-rendering', () => {
           },
         },
       },
-    };
+    }
     const store = createFormStore(deepSchema, {
       level1: { level2: { level3: 'deep' } },
-    });
-    const { renderCount } = renderHook(() => useField('/level1', store));
+    })
+    const { renderCount } = renderHook(() => useField('/level1', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/level1/level2/level3', 'deeper');
-    });
+      store.setData('/level1/level2/level3', 'deeper')
+    })
 
-    expect(renderCount.current).toBe(initialRenders);
-  });
+    expect(renderCount.current).toBe(initialRenders)
+  })
 
   test('does NOT re-render when an array item value changes', () => {
     const store = createFormStore(schema, {
       tags: ['a', 'b', 'c'],
-    });
-    const { renderCount } = renderHook(() => useField('/tags', store));
+    })
+    const { renderCount } = renderHook(() => useField('/tags', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/tags/1', 'B');
-    });
+      store.setData('/tags/1', 'B')
+    })
 
-    expect(renderCount.current).toBe(initialRenders);
-  });
+    expect(renderCount.current).toBe(initialRenders)
+  })
 
   test('object Field DOES re-render when conditional adds a child', () => {
     const condSchema: JSONSchema = {
@@ -216,62 +216,62 @@ describe('useField — selective re-rendering', () => {
       if: { properties: { type: { const: 'business' } } },
       then: { properties: { company: { type: 'string' } } },
       else: { properties: { firstName: { type: 'string' } } },
-    };
-    const store = createFormStore(condSchema, { type: 'personal' });
-    const { renderCount } = renderHook(() => useField('', store));
+    }
+    const store = createFormStore(condSchema, { type: 'personal' })
+    const { renderCount } = renderHook(() => useField('', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/type', 'business');
-    });
+      store.setData('/type', 'business')
+    })
 
-    expect(renderCount.current).toBeGreaterThan(initialRenders);
-  });
+    expect(renderCount.current).toBeGreaterThan(initialRenders)
+  })
 
   test('array Field DOES re-render when item is added', () => {
-    const store = createFormStore(schema, { tags: ['a'] });
-    const { renderCount } = renderHook(() => useField('/tags', store));
+    const store = createFormStore(schema, { tags: ['a'] })
+    const { renderCount } = renderHook(() => useField('/tags', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/tags', ['a', 'b']);
-    });
+      store.setData('/tags', ['a', 'b'])
+    })
 
-    expect(renderCount.current).toBe(initialRenders + 1);
-  });
+    expect(renderCount.current).toBe(initialRenders + 1)
+  })
 
   test('array Field DOES re-render when item is removed', () => {
-    const store = createFormStore(schema, { tags: ['a', 'b'] });
-    const { renderCount } = renderHook(() => useField('/tags', store));
+    const store = createFormStore(schema, { tags: ['a', 'b'] })
+    const { renderCount } = renderHook(() => useField('/tags', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/tags', ['a']);
-    });
+      store.setData('/tags', ['a'])
+    })
 
-    expect(renderCount.current).toBe(initialRenders + 1);
-  });
+    expect(renderCount.current).toBe(initialRenders + 1)
+  })
 
   test('multiple rapid changes to unrelated fields do not cause re-renders', () => {
     const store = createFormStore(schema, {
       name: 'Alice',
       age: 30,
       tags: ['a'],
-    });
-    const { renderCount } = renderHook(() => useField('/name', store));
+    })
+    const { renderCount } = renderHook(() => useField('/name', store))
 
-    const initialRenders = renderCount.current;
+    const initialRenders = renderCount.current
 
     act(() => {
-      store.setData('/age', 31);
-      store.setData('/age', 32);
-      store.setData('/age', 33);
-      store.setData('/tags', ['a', 'b']);
-    });
+      store.setData('/age', 31)
+      store.setData('/age', 32)
+      store.setData('/age', 33)
+      store.setData('/tags', ['a', 'b'])
+    })
 
-    expect(renderCount.current).toBe(initialRenders);
-  });
-});
+    expect(renderCount.current).toBe(initialRenders)
+  })
+})

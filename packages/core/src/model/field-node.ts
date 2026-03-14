@@ -1,4 +1,4 @@
-import type { FieldNode, JSONSchema } from '../types.js';
+import type { FieldNode, JSONSchema } from '../types.js'
 
 /** Create a minimal FieldNode. Primarily used for testing. */
 export function createFieldNode(
@@ -19,10 +19,10 @@ export function createFieldNode(
     constraints: {},
     origin: 'property',
     ...overrides,
-  };
+  }
 }
 
 /** Clone a FieldNode with new overrides (structural sharing for unchanged children). */
 export function updateFieldNode(node: FieldNode, overrides: Partial<FieldNode>): FieldNode {
-  return { ...node, ...overrides };
+  return { ...node, ...overrides }
 }

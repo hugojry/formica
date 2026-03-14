@@ -7,82 +7,82 @@ export type JSONSchemaType =
   | 'boolean'
   | 'object'
   | 'array'
-  | 'null';
+  | 'null'
 
 export interface JSONSchema {
   // Meta
-  $id?: string;
-  $schema?: string;
-  $ref?: string;
-  $defs?: Record<string, JSONSchema>;
-  $comment?: string;
+  $id?: string
+  $schema?: string
+  $ref?: string
+  $defs?: Record<string, JSONSchema>
+  $comment?: string
 
   // Draft 7 compat (normalized away)
-  definitions?: Record<string, JSONSchema>;
-  dependencies?: Record<string, JSONSchema | string[]>;
+  definitions?: Record<string, JSONSchema>
+  dependencies?: Record<string, JSONSchema | string[]>
 
   // Type
-  type?: JSONSchemaType | JSONSchemaType[];
-  const?: unknown;
-  enum?: unknown[];
+  type?: JSONSchemaType | JSONSchemaType[]
+  const?: unknown
+  enum?: unknown[]
 
   // Numeric
-  minimum?: number;
-  maximum?: number;
-  exclusiveMinimum?: number | boolean;
-  exclusiveMaximum?: number | boolean;
-  multipleOf?: number;
+  minimum?: number
+  maximum?: number
+  exclusiveMinimum?: number | boolean
+  exclusiveMaximum?: number | boolean
+  multipleOf?: number
 
   // String
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  format?: string;
+  minLength?: number
+  maxLength?: number
+  pattern?: string
+  format?: string
 
   // Array
-  items?: JSONSchema | JSONSchema[];
-  prefixItems?: JSONSchema[];
-  additionalItems?: JSONSchema | boolean;
-  minItems?: number;
-  maxItems?: number;
-  uniqueItems?: boolean;
-  contains?: JSONSchema;
+  items?: JSONSchema | JSONSchema[]
+  prefixItems?: JSONSchema[]
+  additionalItems?: JSONSchema | boolean
+  minItems?: number
+  maxItems?: number
+  uniqueItems?: boolean
+  contains?: JSONSchema
 
   // Object
-  properties?: Record<string, JSONSchema>;
-  patternProperties?: Record<string, JSONSchema>;
-  additionalProperties?: JSONSchema | boolean;
-  required?: string[];
-  minProperties?: number;
-  maxProperties?: number;
-  propertyNames?: JSONSchema;
+  properties?: Record<string, JSONSchema>
+  patternProperties?: Record<string, JSONSchema>
+  additionalProperties?: JSONSchema | boolean
+  required?: string[]
+  minProperties?: number
+  maxProperties?: number
+  propertyNames?: JSONSchema
 
   // Composition
-  allOf?: JSONSchema[];
-  anyOf?: JSONSchema[];
-  oneOf?: JSONSchema[];
-  not?: JSONSchema;
+  allOf?: JSONSchema[]
+  anyOf?: JSONSchema[]
+  oneOf?: JSONSchema[]
+  not?: JSONSchema
 
   // Conditionals
-  if?: JSONSchema;
-  then?: JSONSchema;
-  else?: JSONSchema;
+  if?: JSONSchema
+  then?: JSONSchema
+  else?: JSONSchema
 
   // Dependencies (2020-12)
-  dependentSchemas?: Record<string, JSONSchema>;
-  dependentRequired?: Record<string, string[]>;
+  dependentSchemas?: Record<string, JSONSchema>
+  dependentRequired?: Record<string, string[]>
 
   // Annotations
-  title?: string;
-  description?: string;
-  default?: unknown;
-  readOnly?: boolean;
-  writeOnly?: boolean;
-  deprecated?: boolean;
-  examples?: unknown[];
+  title?: string
+  description?: string
+  default?: unknown
+  readOnly?: boolean
+  writeOnly?: boolean
+  deprecated?: boolean
+  examples?: unknown[]
 
   // UI hints (extension)
-  [key: `x-${string}`]: unknown;
+  [key: `x-${string}`]: unknown
 }
 
 // ─── Field Node ───
@@ -98,58 +98,58 @@ export type FieldOrigin =
   | 'oneOfBranch'
   | 'anyOfBranch'
   | 'dependentSchema'
-  | 'root';
+  | 'root'
 
 export interface FieldConstraints {
-  minimum?: number;
-  maximum?: number;
-  exclusiveMinimum?: number;
-  exclusiveMaximum?: number;
-  multipleOf?: number;
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  format?: string;
-  minItems?: number;
-  maxItems?: number;
-  uniqueItems?: boolean;
-  minProperties?: number;
-  maxProperties?: number;
-  enum?: unknown[];
-  const?: unknown;
+  minimum?: number
+  maximum?: number
+  exclusiveMinimum?: number
+  exclusiveMaximum?: number
+  multipleOf?: number
+  minLength?: number
+  maxLength?: number
+  pattern?: string
+  format?: string
+  minItems?: number
+  maxItems?: number
+  uniqueItems?: boolean
+  minProperties?: number
+  maxProperties?: number
+  enum?: unknown[]
+  const?: unknown
 }
 
 export interface CombinatorInfo {
-  type: 'oneOf' | 'anyOf';
-  options: JSONSchema[];
-  activeIndex: number | null;
-  labels: string[];
-  ambiguous: boolean;
+  type: 'oneOf' | 'anyOf'
+  options: JSONSchema[]
+  activeIndex: number | null
+  labels: string[]
+  ambiguous: boolean
 }
 
 export interface ArrayMeta {
-  itemSchema: JSONSchema;
-  prefixItems?: JSONSchema[];
-  canAdd: boolean;
-  canRemove: boolean;
-  canReorder: boolean;
+  itemSchema: JSONSchema
+  prefixItems?: JSONSchema[]
+  canAdd: boolean
+  canRemove: boolean
+  canReorder: boolean
 }
 
 export interface FieldNode {
-  path: string;
-  schema: JSONSchema;
-  type: JSONSchemaType | JSONSchemaType[];
-  value: unknown;
-  children: FieldNode[];
-  required: boolean;
-  readOnly: boolean;
-  deprecated: boolean;
-  active: boolean;
-  constraints: FieldConstraints;
-  combinator?: CombinatorInfo;
-  origin: FieldOrigin;
-  arrayMeta?: ArrayMeta;
-  [key: string]: unknown;
+  path: string
+  schema: JSONSchema
+  type: JSONSchemaType | JSONSchemaType[]
+  value: unknown
+  children: FieldNode[]
+  required: boolean
+  readOnly: boolean
+  deprecated: boolean
+  active: boolean
+  constraints: FieldConstraints
+  combinator?: CombinatorInfo
+  origin: FieldOrigin
+  arrayMeta?: ArrayMeta
+  [key: string]: unknown
 }
 
 // ─── Pipeline ───
@@ -164,41 +164,41 @@ export enum PipelineStage {
 }
 
 export interface PipelineContext {
-  schema: JSONSchema;
-  data: unknown;
-  root: FieldNode | null;
-  index: Map<string, FieldNode>;
-  conditionalDeps: Map<string, Set<string>>;
-  stage: PipelineStage;
-  combinatorSelections?: Map<string, number>;
-  resolvedCombinators?: Map<string, CombinatorInfo>;
-  extensions: Record<string, unknown>;
+  schema: JSONSchema
+  data: unknown
+  root: FieldNode | null
+  index: Map<string, FieldNode>
+  conditionalDeps: Map<string, Set<string>>
+  stage: PipelineStage
+  combinatorSelections?: Map<string, number>
+  resolvedCombinators?: Map<string, CombinatorInfo>
+  extensions: Record<string, unknown>
 }
 
-export type Middleware = (ctx: PipelineContext, next: () => PipelineContext) => PipelineContext;
+export type Middleware = (ctx: PipelineContext, next: () => PipelineContext) => PipelineContext
 
-export type EnrichFn = (node: FieldNode, ctx: PipelineContext) => Record<string, unknown> | null;
+export type EnrichFn = (node: FieldNode, ctx: PipelineContext) => Record<string, unknown> | null
 
 export interface PipelineConfig {
-  middleware?: Partial<Record<PipelineStage, Middleware[]>>;
-  enrichments?: EnrichFn[];
+  middleware?: Partial<Record<PipelineStage, Middleware[]>>
+  enrichments?: EnrichFn[]
 }
 
 // ─── Store ───
 
-export type PathSubscriber = (node: FieldNode) => void;
-export type StateSubscriber = (state: FormState) => void;
+export type PathSubscriber = (node: FieldNode) => void
+export type StateSubscriber = (state: FormState) => void
 
 export interface FormState {
-  data: unknown;
+  data: unknown
 }
 
 export interface FormStore {
-  getModel(): PipelineContext;
-  getData(): unknown;
-  setData(path: string, value: unknown): void;
-  setCombinatorIndex(path: string, index: number): void;
-  subscribePath(path: string, listener: PathSubscriber): () => void;
-  getState(): FormState;
-  subscribe(listener: StateSubscriber): () => void;
+  getModel(): PipelineContext
+  getData(): unknown
+  setData(path: string, value: unknown): void
+  setCombinatorIndex(path: string, index: number): void
+  subscribePath(path: string, listener: PathSubscriber): () => void
+  getState(): FormState
+  subscribe(listener: StateSubscriber): () => void
 }

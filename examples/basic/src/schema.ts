@@ -1,4 +1,4 @@
-import type { JSONSchema } from '@formica/core';
+import type { JSONSchema } from '@formica/core'
 
 export const userProfileSchema: JSONSchema = {
   type: 'object',
@@ -130,4 +130,4 @@ export const userProfileSchema: JSONSchema = {
       },
     },
   },
-};
+}
