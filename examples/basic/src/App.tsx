@@ -165,7 +165,6 @@ function DataPreview({ form }: { form: FormApi }) {
         <div>
           <h2 style={{ margin: '0 0 8px', fontSize: '1.1em' }}>Live Data</h2>
           <pre>{JSON.stringify(state.data, null, 2)}</pre>
-          <p style={{ marginTop: 8 }}>Form is {state.isDirty ? 'dirty' : 'clean'}</p>
         </div>
       )}
     </form.Subscribe>

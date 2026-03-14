@@ -39,7 +39,6 @@ export {
 // Pipeline
 export { applyEnrichments } from './pipeline/enrichments.js';
 export { runPipeline } from './pipeline/pipeline.js';
-export { computeDirtyPaths, isPathAffected } from './reactivity/differ.js';
 // Reactivity
 export { createFormStore } from './reactivity/store.js';
 // Schema

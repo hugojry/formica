@@ -431,10 +431,9 @@ describe('FormState', () => {
     },
   };
 
-  test('getState returns initial data and isDirty false', () => {
+  test('getState returns initial data', () => {
     const store = createFormStore(schema, { name: 'Alice', age: 30 });
     const state = store.getState();
-    expect(state.isDirty).toBe(false);
     expect((state.data as Record<string, unknown>).name).toBe('Alice');
   });
 
@@ -442,20 +441,6 @@ describe('FormState', () => {
     const store = createFormStore(schema, { name: 'Alice' });
     store.setData('/name', 'Bob');
     expect((store.getState().data as Record<string, unknown>).name).toBe('Bob');
-  });
-
-  test('isDirty becomes true after setData', () => {
-    const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    store.setData('/name', 'Bob');
-    expect(store.getState().isDirty).toBe(true);
-  });
-
-  test('isDirty returns to false when data matches initial', () => {
-    const store = createFormStore(schema, { name: 'Alice', age: 30 });
-    store.setData('/name', 'Bob');
-    expect(store.getState().isDirty).toBe(true);
-    store.setData('/name', 'Alice');
-    expect(store.getState().isDirty).toBe(false);
   });
 
   test('subscribe notifies on every data change', () => {
@@ -466,22 +451,5 @@ describe('FormState', () => {
     store.setData('/name', 'Bob');
     store.setData('/name', 'Charlie');
     expect(names).toEqual(['Bob', 'Charlie']);
-  });
-
-  test('subscribe notifies when isDirty changes', () => {
-    const store = createFormStore(schema, { name: 'Alice' });
-    const dirtyStates: boolean[] = [];
-    store.subscribe((s) => dirtyStates.push(s.isDirty));
-
-    store.setData('/name', 'Bob');
-    expect(dirtyStates).toEqual([true]);
-
-    store.setData('/name', 'Alice');
-    expect(dirtyStates).toEqual([true, false]);
-  });
-
-  test('isDirty false when no initial data and no changes', () => {
-    const store = createFormStore(schema);
-    expect(store.getState().isDirty).toBe(false);
   });
 });

@@ -191,7 +191,6 @@ export type StateSubscriber = (state: FormState) => void;
 
 export interface FormState {
   data: unknown;
-  isDirty: boolean;
 }
 
 export interface FormStore {

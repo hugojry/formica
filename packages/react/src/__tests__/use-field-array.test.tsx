@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import type { JSONSchema } from '@formica/core';
 import { createFormStore } from '@formica/core';
+import { useField } from '../hooks/use-field.js';
 import { useFieldArray } from '../hooks/use-field-array.js';
 import { act, renderHook } from './helpers.js';
 
@@ -65,42 +66,49 @@ describe('useFieldArray', () => {
 
   test('replace replaces at index', () => {
     const store = createFormStore(schema, { tags: ['a', 'b', 'c'] });
-    const { result } = renderHook(() => useFieldArray('/tags', store));
+    const { result: arrayResult } = renderHook(() => useFieldArray('/tags', store));
+    const { result: fieldResult } = renderHook(() => useField('/tags/1', store));
+
+    expect(fieldResult.current.node?.value).toBe('b');
 
     act(() => {
-      result.current.replace(1, 'B');
+      arrayResult.current.replace(1, 'B');
     });
 
-    expect(result.current.items).toHaveLength(3);
-    expect(result.current.items[1]?.value).toBe('B');
+    expect(arrayResult.current.items).toHaveLength(3);
+    expect(fieldResult.current.node?.value).toBe('B');
   });
 
   test('move reorders items', () => {
-    const store = createFormStore(schema, { tags: ['a', 'b', 'c'] });
-    const { result } = renderHook(() => useFieldArray('/tags', store));
+    const tags = ['a', 'b', 'c'];
+    const store = createFormStore(schema, { tags: tags });
+    const { result: arrayResult } = renderHook(() => useFieldArray('/tags', store));
+    const fields = tags.map((_, i) => renderHook(() => useField(`/tags/${i}`, store)));
 
     act(() => {
-      result.current.move(0, 2);
+      arrayResult.current.move(0, 2);
     });
 
-    expect(result.current.items).toHaveLength(3);
-    expect(result.current.items[0]?.value).toBe('b');
-    expect(result.current.items[1]?.value).toBe('c');
-    expect(result.current.items[2]?.value).toBe('a');
+    expect(arrayResult.current.items).toHaveLength(3);
+    expect(fields[0].result.current.node?.value).toBe('b');
+    expect(fields[1].result.current.node?.value).toBe('c');
+    expect(fields[2].result.current.node?.value).toBe('a');
   });
 
   test('swap exchanges two items', () => {
-    const store = createFormStore(schema, { tags: ['a', 'b', 'c'] });
+    const tags = ['a', 'b', 'c'];
+    const store = createFormStore(schema, { tags: tags });
     const { result } = renderHook(() => useFieldArray('/tags', store));
+    const fields = tags.map((_, i) => renderHook(() => useField(`/tags/${i}`, store)));
 
     act(() => {
       result.current.swap(0, 2);
     });
 
     expect(result.current.items).toHaveLength(3);
-    expect(result.current.items[0]?.value).toBe('c');
-    expect(result.current.items[1]?.value).toBe('b');
-    expect(result.current.items[2]?.value).toBe('a');
+    expect(fields[0].result.current.node?.value).toBe('c');
+    expect(fields[1].result.current.node?.value).toBe('b');
+    expect(fields[2].result.current.node?.value).toBe('a');
   });
 
   test('clear empties the array', () => {

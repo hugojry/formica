@@ -10,33 +10,6 @@ import type {
   PipelineContext,
   StateSubscriber,
 } from '../types.js';
-import { computeDirtyPaths, isPathAffected } from './differ.js';
-
-function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (a == null || b == null) return a === b;
-  if (typeof a !== typeof b) return false;
-  if (typeof a !== 'object') return false;
-
-  if (Array.isArray(a)) {
-    if (!Array.isArray(b) || a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (!deepEqual(a[i], b[i])) return false;
-    }
-    return true;
-  }
-
-  const aObj = a as Record<string, unknown>;
-  const bObj = b as Record<string, unknown>;
-  const aKeys = Object.keys(aObj);
-  const bKeys = Object.keys(bObj);
-  if (aKeys.length !== bKeys.length) return false;
-  for (const key of aKeys) {
-    if (!Object.hasOwn(bObj, key)) return false;
-    if (!deepEqual(aObj[key], bObj[key])) return false;
-  }
-  return true;
-}
 
 export function createFormStore(
   schema: JSONSchema,
@@ -48,18 +21,12 @@ export function createFormStore(
   const rebuild = (data: unknown) => runPipeline(schema, data, config, combinatorSelections);
 
   let model = rebuild(initialData);
-  const initialSnapshot = structuredClone(model.data);
-  let currentState: FormState = { data: model.data, isDirty: false };
+  let currentState: FormState = { data: model.data };
   const pathListeners = new Map<string, Set<PathSubscriber>>();
   const stateListeners = new Set<StateSubscriber>();
 
-  function computeIsDirty(): boolean {
-    return !deepEqual(model.data, initialSnapshot);
-  }
-
   function updateState(): void {
-    const isDirty = computeIsDirty();
-    currentState = { data: model.data, isDirty };
+    currentState = { data: model.data };
     for (const listener of stateListeners) {
       listener(currentState);
     }
@@ -80,37 +47,23 @@ export function createFormStore(
 
     const newData = setByPath(model.data, path, value);
 
-    // Compute dirty paths for targeted notifications
-    const dirtyPaths = computeDirtyPaths(path, model.conditionalDeps);
-
     const prevModel = model;
     model = rebuild(newData);
 
-    notifyPathListeners(prevModel, dirtyPaths, path);
+    notifyPathListeners(prevModel.index, model.index);
 
     updateState();
   }
 
   function notifyPathListeners(
-    prevModel: PipelineContext,
-    dirtyPaths: Set<string>,
-    changedPath?: string,
+    prevIndex: Map<string, FieldNode>,
+    newIndex: Map<string, FieldNode>,
   ): void {
     for (const [subPath, listeners] of pathListeners) {
-      if (!isPathAffected(subPath, dirtyPaths, changedPath)) continue;
-
-      const prevNode = prevModel.index.get(subPath);
-      const newNode = model.index.get(subPath);
-
-      if (prevNode !== newNode) {
-        const isContainer =
-          (newNode?.children?.length ?? 0) > 0 || (prevNode?.children?.length ?? 0) > 0;
-        const isContainerPath = isContainer && subPath !== changedPath;
-
-        if (shouldNotifyPath(prevNode, newNode, isContainerPath)) {
-          for (const listener of listeners) {
-            if (newNode) listener(newNode);
-          }
+      const n = newIndex.get(subPath);
+      if (shouldNotify(prevIndex.get(subPath), n)) {
+        for (const listener of listeners) {
+          if (n) listener(n);
         }
       }
     }
@@ -118,14 +71,9 @@ export function createFormStore(
 
   function setCombinatorIndex(path: string, index: number): void {
     combinatorSelections.set(path, index);
-
-    // Compute dirty paths — the combinator path and all descendants need rebuilding
-    const dirtyPaths = computeDirtyPaths(path, model.conditionalDeps);
-
     const prevModel = model;
     model = rebuild(model.data);
-
-    notifyPathListeners(prevModel, dirtyPaths);
+    notifyPathListeners(prevModel.index, model.index);
   }
 
   function subscribePath(path: string, listener: PathSubscriber): () => void {
@@ -160,20 +108,15 @@ export function createFormStore(
   };
 }
 
-function shouldNotifyPath(
-  prevNode: FieldNode | undefined,
-  newNode: FieldNode | undefined,
-  isContainerPath: boolean,
-): boolean {
-  if (!prevNode || !newNode) return true;
-  if (isContainerPath) {
-    return childrenChanged(prevNode, newNode) || nodePropsChanged(prevNode, newNode);
-  }
-  return prevNode.value !== newNode.value || nodePropsChanged(prevNode, newNode);
+function shouldNotify(a: FieldNode | undefined, b: FieldNode | undefined): boolean {
+  if (!a && !b) return false;
+  if (!a || !b || a.type !== b.type) return true;
+  if (b.type === 'object' || b.type === 'array')
+    return shouldNotifyContainer(a, b) || nodePropsChanged(a, b);
+  return a.value !== b.value || nodePropsChanged(a, b);
 }
 
-function childrenChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {
-  if (!a || !b) return true;
+function shouldNotifyContainer(a: FieldNode, b: FieldNode): boolean {
   if (a.children.length !== b.children.length) return true;
   for (let i = 0; i < a.children.length; i++) {
     if (a.children[i].path !== b.children[i].path) return true;
@@ -187,8 +130,7 @@ function childrenChanged(a: FieldNode | undefined, b: FieldNode | undefined): bo
 // re-renders without needing an explicit allowlist.
 const SKIP_KEYS = new Set(['path', 'schema', 'type', 'value', 'children']);
 
-function nodePropsChanged(a: FieldNode | undefined, b: FieldNode | undefined): boolean {
-  if (!a || !b) return true;
+function nodePropsChanged(a: FieldNode, b: FieldNode): boolean {
   const aObj = a as Record<string, unknown>;
   const bObj = b as Record<string, unknown>;
   const aKeys = Object.keys(aObj);
@@ -199,4 +141,30 @@ function nodePropsChanged(a: FieldNode | undefined, b: FieldNode | undefined): b
     if (!deepEqual(aObj[key], bObj[key])) return true;
   }
   return false;
+}
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a == null || b == null) return a === b;
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== 'object') return false;
+
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  const aObj = a as Record<string, unknown>;
+  const bObj = b as Record<string, unknown>;
+  const aKeys = Object.keys(aObj);
+  const bKeys = Object.keys(bObj);
+  if (aKeys.length !== bKeys.length) return false;
+  for (const key of aKeys) {
+    if (!Object.hasOwn(bObj, key)) return false;
+    if (!deepEqual(aObj[key], bObj[key])) return false;
+  }
+  return true;
 }
